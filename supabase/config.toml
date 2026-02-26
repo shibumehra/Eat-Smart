@@ -1,0 +1,7 @@
+project_id = "rhshgrlfxovzkqtktskr"
+
+[functions.analyze-product]
+verify_jwt = false
+
+[functions.identify-product-image]
+verify_jwt = false
