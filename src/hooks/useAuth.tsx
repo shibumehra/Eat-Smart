@@ -52,11 +52,13 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
   const navigate = useNavigate();
 
+  const devBypass = localStorage.getItem('dev-bypass-auth') === 'true';
+
   useEffect(() => {
-    if (!loading && !session) {
+    if (!loading && !session && !devBypass) {
       navigate('/auth');
     }
-  }, [session, loading, navigate]);
+  }, [session, loading, navigate, devBypass]);
 
   if (loading) {
     return (
@@ -66,6 +68,6 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!session) return null;
+  if (!session && !devBypass) return null;
   return <>{children}</>;
 }

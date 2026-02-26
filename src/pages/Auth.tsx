@@ -168,6 +168,14 @@ export default function Auth() {
             Continue with Google
           </button>
         </div>
+
+          {/* Temporary bypass button */}
+          <button
+            onClick={() => { localStorage.setItem('dev-bypass-auth', 'true'); navigate('/'); }}
+            className="mt-4 w-full rounded-xl border border-dashed border-muted-foreground/30 py-2.5 text-xs text-muted-foreground hover:text-foreground hover:border-foreground/50 transition-all"
+          >
+            ⚡ Skip Auth (Dev Mode)
+          </button>
       </motion.div>
     </div>
   );
