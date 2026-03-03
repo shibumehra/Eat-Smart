@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ProductReport as ReportType, Alternative } from '@/lib/types';
 import ScoreRing from './ScoreRing';
 import ComparisonModal from './ComparisonModal';
-import { ChevronDown, ChevronUp, Shield, Star, ThumbsUp, ThumbsDown, Minus, Info } from 'lucide-react';
+import { ChevronDown, ChevronUp, Shield, ThumbsUp, ThumbsDown, Minus, Info, X } from 'lucide-react';
 
 const verdictColors = { Buy: 'bg-safe/20 text-safe', Avoid: 'bg-harmful/20 text-harmful', 'Try Once': 'bg-caution/20 text-caution' };
 const ingredientColors = { safe: 'bg-safe/15 text-safe border-safe/20', caution: 'bg-caution/15 text-caution border-caution/20', harmful: 'bg-harmful/15 text-harmful border-harmful/20', unknown: 'bg-muted text-muted-foreground border-border' };
@@ -14,15 +14,24 @@ const platformIcons: Record<string, string> = { YouTube: '📺', Reddit: '🟠',
 interface Props {
   report: ReportType;
   onAnalyze: (name: string) => void;
+  region?: string;
 }
 
-export default function ProductReportView({ report, onAnalyze }: Props) {
+export default function ProductReportView({ report, onAnalyze, region }: Props) {
+  const [expandedIngredients, setExpandedIngredients] = useState(false);
   const [expandedIngredient, setExpandedIngredient] = useState<string | null>(null);
   const [showHealth, setShowHealth] = useState(false);
   const [compareAlt, setCompareAlt] = useState<Alternative | null>(null);
   const [showRegTooltip, setShowRegTooltip] = useState(false);
 
   const regIcon = report.regulatoryStatus === 'Certified' ? '✅' : report.regulatoryStatus === 'Not Certified' ? '❌' : '⚠️';
+
+  // Get the region-specific authority name
+  const regionAuthority: Record<string, string> = {
+    IN: 'FSSAI', US: 'FDA', UK: 'FSA', EU: 'EFSA', AU: 'FSANZ', CA: 'CFIA',
+  };
+  const currentAuthority = regionAuthority[region || 'IN'] || 'FSSAI';
+  const currentCert = report.crossRegionCertifications?.[currentAuthority];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 pb-8">
@@ -55,29 +64,40 @@ export default function ProductReportView({ report, onAnalyze }: Props) {
           <ScoreRing score={report.reviewAuthenticity} maxScore={100} size={56} strokeWidth={4} />
           <p className="mt-1 text-[10px] text-muted-foreground">Review Auth.</p>
         </div>
+        {/* Regulatory - fixed tooltip */}
         <div className="glass rounded-xl p-3 relative">
           <div className="flex flex-col items-center">
             <span className="text-2xl">{regIcon}</span>
             <p className="mt-1 text-xs font-medium text-foreground">{report.regulatoryStatus}</p>
-            <p className="text-[10px] text-muted-foreground">Regulatory</p>
+            <p className="text-[10px] text-muted-foreground">{currentAuthority}</p>
           </div>
-          <button onClick={() => setShowRegTooltip(!showRegTooltip)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground">
+          <button onClick={() => setShowRegTooltip(!showRegTooltip)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground z-10">
             <Info className="h-3 w-3" />
           </button>
-          {showRegTooltip && (
-            <div className="absolute top-full left-0 right-0 z-10 mt-1 glass rounded-lg p-2 text-[10px] text-muted-foreground shadow-lg">
-              <p className="font-medium text-foreground mb-1">Reasoning:</p>
-              <p>{report.regulatoryReasoning}</p>
-              {Object.keys(report.crossRegionCertifications).length > 0 && (
-                <>
-                  <p className="font-medium text-foreground mt-1.5 mb-0.5">Cross-region:</p>
-                  {Object.entries(report.crossRegionCertifications).map(([k, v]) => (
-                    <p key={k}>{k}: {v}</p>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
+          <AnimatePresence>
+            {showRegTooltip && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="absolute bottom-full left-1/2 -translate-x-1/2 z-50 mb-2 w-64 glass rounded-lg p-3 text-[10px] text-muted-foreground shadow-xl border border-border"
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <p className="font-medium text-foreground">Regulatory Info ({currentAuthority})</p>
+                  <button onClick={() => setShowRegTooltip(false)} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+                <p>{report.regulatoryReasoning}</p>
+                {currentCert && (
+                  <p className="mt-1.5 text-foreground/70">
+                    <span className="font-medium">{currentAuthority}:</span> {currentCert}
+                  </p>
+                )}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-card border-b border-r border-border rotate-45 -mt-1" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         <div className="glass rounded-xl p-3 text-center">
           <ScoreRing score={report.valueForMoney} maxScore={10} size={56} strokeWidth={4} />
@@ -85,20 +105,17 @@ export default function ProductReportView({ report, onAnalyze }: Props) {
         </div>
       </div>
 
-      {/* Content - Desktop 2 col */}
+      {/* Content */}
       <div className="lg:grid lg:grid-cols-3 lg:gap-4 space-y-3 lg:space-y-0">
         <div className="lg:col-span-2 space-y-3">
-          {/* About */}
           <Section title="📋 About This Product">
             <p className="text-sm text-muted-foreground leading-relaxed">{report.about}</p>
           </Section>
 
-          {/* Verdict - mobile inline */}
           <div className="lg:hidden">
             <VerdictCard verdict={report.foodScoutVerdict} />
           </div>
 
-          {/* Pros & Cons */}
           <Section title="✅ Top Pros & Cons">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="space-y-1.5">
@@ -120,32 +137,66 @@ export default function ProductReportView({ report, onAnalyze }: Props) {
             </div>
           </Section>
 
-          {/* Consensus */}
           <Section title="💬 General Consensus">
             <p className="text-sm text-muted-foreground leading-relaxed">{report.generalConsensus}</p>
           </Section>
 
-          {/* Ingredients */}
-          <Section title="🧪 Ingredient Analysis">
-            <div className="flex flex-wrap gap-1.5">
-              {report.ingredients.map((ing) => (
-                <button
-                  key={ing.name}
-                  onClick={() => setExpandedIngredient(expandedIngredient === ing.name ? null : ing.name)}
-                  className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${ingredientColors[ing.status]}`}
-                >
-                  {ing.name}
-                </button>
-              ))}
-            </div>
-            {expandedIngredient && (
-              <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} className="overflow-hidden">
-                <div className="mt-2 glass rounded-lg p-3 text-xs text-muted-foreground">
-                  {report.ingredients.find(i => i.name === expandedIngredient)?.detail}
+          {/* Ingredients - Expandable */}
+          <div className="glass rounded-2xl overflow-hidden">
+            <button
+              onClick={() => setExpandedIngredients(!expandedIngredients)}
+              className="flex w-full items-center justify-between p-4"
+            >
+              <span className="text-sm font-semibold text-foreground">🧪 Ingredient Analysis ({report.ingredients.length})</span>
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {['safe', 'caution', 'harmful'].map(status => {
+                    const count = report.ingredients.filter(i => i.status === status).length;
+                    if (!count) return null;
+                    const colors = { safe: 'bg-safe', caution: 'bg-caution', harmful: 'bg-harmful' };
+                    return <span key={status} className={`h-2 w-2 rounded-full ${colors[status as keyof typeof colors]}`} />;
+                  })}
                 </div>
-              </motion.div>
-            )}
-          </Section>
+                {expandedIngredients ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+              </div>
+            </button>
+            <AnimatePresence>
+              {expandedIngredients && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="px-4 pb-4 space-y-2">
+                    {report.ingredients.map((ing) => (
+                      <div key={ing.name} className={`rounded-xl border p-3 ${ingredientColors[ing.status]}`}>
+                        <button
+                          onClick={() => setExpandedIngredient(expandedIngredient === ing.name ? null : ing.name)}
+                          className="flex w-full items-center justify-between"
+                        >
+                          <span className="text-xs font-semibold">{ing.name}</span>
+                          <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">{ing.status}</span>
+                        </button>
+                        <AnimatePresence>
+                          {expandedIngredient === ing.name && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              className="overflow-hidden"
+                            >
+                              <p className="mt-2 text-xs leading-relaxed opacity-80">{ing.detail}</p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Alternatives */}
           <Section title="💡 Healthier Alternatives">
@@ -154,7 +205,7 @@ export default function ProductReportView({ report, onAnalyze }: Props) {
                 <div key={alt.name} className="glass rounded-xl p-3 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-foreground">{alt.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{alt.brand}</p>
+                    <p className="text-[10px] text-muted-foreground">{alt.brand}{alt.reason ? ` · ${alt.reason}` : ''}</p>
                   </div>
                   <div className="flex items-center gap-3">
                     <ScoreRing score={alt.score} maxScore={10} size={40} strokeWidth={3} />
@@ -172,33 +223,30 @@ export default function ProductReportView({ report, onAnalyze }: Props) {
 
           {/* Health Verdict */}
           <div className="glass rounded-2xl overflow-hidden">
-            <button
-              onClick={() => setShowHealth(!showHealth)}
-              className="flex w-full items-center justify-between p-4"
-            >
+            <button onClick={() => setShowHealth(!showHealth)} className="flex w-full items-center justify-between p-4">
               <span className="text-sm font-semibold text-foreground">🏥 Health Verdict</span>
               {showHealth ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
             </button>
-            {showHealth && (
-              <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} className="overflow-hidden">
-                <div className="px-4 pb-4 space-y-2">
-                  {Object.entries(report.healthVerdict).map(([key, val]) => (
-                    <div key={key} className="flex gap-2 text-sm">
-                      <span className="shrink-0 text-muted-foreground capitalize font-medium min-w-[80px]">{key}:</span>
-                      <span className="text-foreground/80">{val}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {showHealth && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                  <div className="px-4 pb-4 space-y-2">
+                    {Object.entries(report.healthVerdict).map(([key, val]) => (
+                      <div key={key} className="flex gap-2 text-sm">
+                        <span className="shrink-0 text-muted-foreground capitalize font-medium min-w-[80px]">{key}:</span>
+                        <span className="text-foreground/80">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Buying Advice */}
           <Section title="🛒 Buying Advice">
             <p className="text-sm text-muted-foreground leading-relaxed">{report.buyingAdvice}</p>
           </Section>
 
-          {/* Public Sentiment */}
           <Section title="📊 Public Sentiment">
             <div className="space-y-2">
               <div className="flex h-6 w-full overflow-hidden rounded-full">
@@ -215,7 +263,6 @@ export default function ProductReportView({ report, onAnalyze }: Props) {
             </div>
           </Section>
 
-          {/* Reviews */}
           <Section title="⭐ Top Authentic Reviews">
             <div className="space-y-2">
               {report.topReviews.map((review, i) => (
@@ -232,20 +279,13 @@ export default function ProductReportView({ report, onAnalyze }: Props) {
           </Section>
         </div>
 
-        {/* Sidebar - desktop only */}
         <div className="hidden lg:block space-y-3">
           <VerdictCard verdict={report.foodScoutVerdict} />
         </div>
       </div>
 
-      {/* Comparison Modal */}
       {compareAlt && (
-        <ComparisonModal
-          original={report}
-          alternative={compareAlt}
-          onClose={() => setCompareAlt(null)}
-          onAnalyze={onAnalyze}
-        />
+        <ComparisonModal original={report} alternative={compareAlt} onClose={() => setCompareAlt(null)} onAnalyze={onAnalyze} />
       )}
     </motion.div>
   );

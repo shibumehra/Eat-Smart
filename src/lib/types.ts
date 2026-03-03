@@ -34,6 +34,12 @@ export interface Alternative {
   name: string;
   score: number;
   brand: string;
+  ingredientPurityScore?: number;
+  verdict?: 'Buy' | 'Avoid' | 'Try Once';
+  valueForMoney?: number;
+  regulatoryStatus?: string;
+  reviewAuthenticity?: number;
+  reason?: string;
 }
 
 export interface Review {

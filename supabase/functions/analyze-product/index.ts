@@ -33,7 +33,7 @@ CRITICAL RULES:
 4. Reviews must be specifically about the EXACT product, not similar products
 5. ALL review URLs must be set to "N/A" - never generate URLs
 6. The regulatory authority for this region is: ${authority}
-7. Check for certification status across regions: FSSAI, FDA, FSA, EFSA, FSANZ, CFIA
+7. For crossRegionCertifications, ONLY include the certification for the user's region (${authority.split(' ')[0]}), do NOT list all regions
 8. FoodScout verdict must be witty, bold, and memorable - like a food critic's one-liner
 9. If you cannot find enough real data, return: {"error": "NOT_FOUND"}
 
@@ -49,15 +49,15 @@ Return a JSON object with EXACTLY this structure:
   "reviewAuthenticity": 0-100,
   "regulatoryStatus": "Certified" | "Not Certified" | "Unknown",
   "regulatoryReasoning": "Detailed reasoning for certification status",
-  "crossRegionCertifications": {"FSSAI": "status", "FDA": "status", ...},
+  "crossRegionCertifications": {"${authority.split(' ')[0]}": "Certified/Not Certified/Unknown with brief reason"},
   "valueForMoney": 0-10,
   "about": "2-3 sentence description of the product",
   "foodScoutVerdict": "A witty, memorable one-liner verdict",
   "pros": ["pro1", "pro2", "pro3"],
   "cons": ["con1", "con2", "con3"],
   "generalConsensus": "Summary of community opinion",
-  "ingredients": [{"name": "Ingredient", "status": "safe|caution|harmful|unknown", "detail": "Why this rating"}],
-  "healthierAlternatives": [{"name": "Product Name", "score": 0-10, "brand": "Brand"}],
+  "ingredients": [{"name": "Ingredient", "status": "safe|caution|harmful|unknown", "detail": "Detailed explanation: what it is, why it's used, potential health effects, daily intake limits if relevant, and any controversies"}],
+  "healthierAlternatives": [{"name": "Product Name", "score": 0-10, "brand": "Brand", "ingredientPurityScore": 0-100, "verdict": "Buy|Avoid|Try Once", "valueForMoney": 0-10, "regulatoryStatus": "Certified|Not Certified|Unknown", "reviewAuthenticity": 0-100, "reason": "Why this is a better alternative"}],
   "healthVerdict": {"diabetics": "advice", "children": "advice", "pregnant": "advice", "fitness": "advice", "general": "advice"},
   "buyingAdvice": "Practical buying recommendation",
   "publicSentiment": {"positive": 0-100, "neutral": 0-100, "negative": 0-100, "totalReviews": number},

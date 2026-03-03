@@ -148,7 +148,7 @@ export default function Index() {
             <div className="mb-4">
               <SearchBar onSearch={analyzeProduct} onImageCapture={handleImageCapture} loading={loading} />
             </div>
-            <ProductReportView report={report} onAnalyze={analyzeProduct} />
+            <ProductReportView report={report} onAnalyze={analyzeProduct} region={region} />
           </div>
         )}
       </main>
