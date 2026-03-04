@@ -15,11 +15,9 @@ export interface ProductReport {
   foodScoutVerdict: string;
   pros: string[];
   cons: string[];
-  generalConsensus: string;
   ingredients: IngredientTag[];
   healthierAlternatives: Alternative[];
   healthVerdict: Record<string, string>;
-  buyingAdvice: string;
   publicSentiment: { positive: number; neutral: number; negative: number; totalReviews: number };
   topReviews: Review[];
 }

@@ -3,13 +3,29 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ProductReport as ReportType, Alternative } from '@/lib/types';
 import ScoreRing from './ScoreRing';
 import ComparisonModal from './ComparisonModal';
-import { ChevronDown, ChevronUp, Shield, ThumbsUp, ThumbsDown, Minus, Info, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Shield, Info, X } from 'lucide-react';
 
-const verdictColors = { Buy: 'bg-safe/20 text-safe', Avoid: 'bg-harmful/20 text-harmful', 'Try Once': 'bg-caution/20 text-caution' };
-const ingredientColors = { safe: 'bg-safe/15 text-safe border-safe/20', caution: 'bg-caution/15 text-caution border-caution/20', harmful: 'bg-harmful/15 text-harmful border-harmful/20', unknown: 'bg-muted text-muted-foreground border-border' };
-const sentimentIcons = { positive: <ThumbsUp className="h-3 w-3" />, negative: <ThumbsDown className="h-3 w-3" />, neutral: <Minus className="h-3 w-3" /> };
-const sentimentColors = { positive: 'border-safe/30 bg-safe/5', negative: 'border-harmful/30 bg-harmful/5', neutral: 'border-caution/30 bg-caution/5' };
-const platformIcons: Record<string, string> = { YouTube: '📺', Reddit: '🟠', Amazon: '📦', Twitter: '🐦', Blog: '📝', Other: '🌐' };
+const verdictColors = { Buy: 'bg-safe/15 text-safe', Avoid: 'bg-harmful/15 text-harmful', 'Try Once': 'bg-caution/15 text-caution' };
+const ingredientColors = { safe: 'bg-safe/10 text-safe border-safe/20', caution: 'bg-caution/10 text-caution border-caution/20', harmful: 'bg-harmful/10 text-harmful border-harmful/20', unknown: 'bg-muted text-muted-foreground border-border' };
+
+const healthIcons: Record<string, string> = { diabetics: '🩸', children: '👶', pregnant: '🤰', fitness: '💪', general: '👤' };
+const healthLabels: Record<string, string> = { diabetics: 'Diabetics', children: 'Children', pregnant: 'Pregnant Women', fitness: 'Fitness', general: 'General' };
+
+function getHealthColor(text: string) {
+  const lower = text.toLowerCase();
+  if (lower.includes('avoid') || lower.includes('not suitable') || lower.includes('not recommended')) return 'text-harmful';
+  if (lower.includes('moderation') || lower.includes('sparingly') || lower.includes('caution') || lower.includes('limit')) return 'text-caution';
+  if (lower.includes('safe') || lower.includes('good') || lower.includes('recommended') || lower.includes('beneficial')) return 'text-safe';
+  return 'text-muted-foreground';
+}
+
+function getHealthDot(text: string) {
+  const lower = text.toLowerCase();
+  if (lower.includes('avoid') || lower.includes('not suitable') || lower.includes('not recommended')) return 'bg-harmful';
+  if (lower.includes('moderation') || lower.includes('sparingly') || lower.includes('caution') || lower.includes('limit')) return 'bg-caution';
+  if (lower.includes('safe') || lower.includes('good') || lower.includes('recommended') || lower.includes('beneficial')) return 'bg-safe';
+  return 'bg-muted-foreground';
+}
 
 interface Props {
   report: ReportType;
@@ -18,20 +34,20 @@ interface Props {
 }
 
 export default function ProductReportView({ report, onAnalyze, region }: Props) {
+  const [expandedAbout, setExpandedAbout] = useState(false);
   const [expandedIngredients, setExpandedIngredients] = useState(false);
   const [expandedIngredient, setExpandedIngredient] = useState<string | null>(null);
-  const [showHealth, setShowHealth] = useState(false);
+  const [showHealth, setShowHealth] = useState(true);
+  const [expandedReviews, setExpandedReviews] = useState(false);
   const [compareAlt, setCompareAlt] = useState<Alternative | null>(null);
   const [showRegTooltip, setShowRegTooltip] = useState(false);
 
   const regIcon = report.regulatoryStatus === 'Certified' ? '✅' : report.regulatoryStatus === 'Not Certified' ? '❌' : '⚠️';
-
-  // Get the region-specific authority name
-  const regionAuthority: Record<string, string> = {
-    IN: 'FSSAI', US: 'FDA', UK: 'FSA', EU: 'EFSA', AU: 'FSANZ', CA: 'CFIA',
-  };
+  const regionAuthority: Record<string, string> = { IN: 'FSSAI', US: 'FDA', UK: 'FSA', EU: 'EFSA', AU: 'FSANZ', CA: 'CFIA' };
   const currentAuthority = regionAuthority[region || 'IN'] || 'FSSAI';
-  const currentCert = report.crossRegionCertifications?.[currentAuthority];
+
+  const platformIcons: Record<string, string> = { YouTube: '📺', Reddit: '🟠', Amazon: '📦', Twitter: '🐦', Blog: '📝', Other: '🌐' };
+  const sentimentColors = { positive: 'border-safe/30 bg-safe/5', negative: 'border-harmful/30 bg-harmful/5', neutral: 'border-caution/30 bg-caution/5' };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 pb-8">
@@ -64,7 +80,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
           <ScoreRing score={report.reviewAuthenticity} maxScore={100} size={56} strokeWidth={4} />
           <p className="mt-1 text-[10px] text-muted-foreground">Review Auth.</p>
         </div>
-        {/* Regulatory - fixed tooltip */}
+        {/* Regulatory */}
         <div className="glass rounded-xl p-3 relative">
           <div className="flex flex-col items-center">
             <span className="text-2xl">{regIcon}</span>
@@ -80,7 +96,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute bottom-full left-1/2 -translate-x-1/2 z-50 mb-2 w-64 glass rounded-lg p-3 text-[10px] text-muted-foreground shadow-xl border border-border"
+                className="absolute top-full left-1/2 -translate-x-1/2 z-50 mt-2 w-64 bg-card rounded-lg p-3 text-[10px] text-muted-foreground shadow-lg border border-border"
               >
                 <div className="flex items-center justify-between mb-1">
                   <p className="font-medium text-foreground">Regulatory Info ({currentAuthority})</p>
@@ -89,12 +105,6 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
                   </button>
                 </div>
                 <p>{report.regulatoryReasoning}</p>
-                {currentCert && (
-                  <p className="mt-1.5 text-foreground/70">
-                    <span className="font-medium">{currentAuthority}:</span> {currentCert}
-                  </p>
-                )}
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-card border-b border-r border-border rotate-45 -mt-1" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -108,14 +118,24 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
       {/* Content */}
       <div className="lg:grid lg:grid-cols-3 lg:gap-4 space-y-3 lg:space-y-0">
         <div className="lg:col-span-2 space-y-3">
+          {/* About - truncated */}
           <Section title="📋 About This Product">
-            <p className="text-sm text-muted-foreground leading-relaxed">{report.about}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {expandedAbout ? report.about : report.about.slice(0, 120) + (report.about.length > 120 ? '...' : '')}
+            </p>
+            {report.about.length > 120 && (
+              <button onClick={() => setExpandedAbout(!expandedAbout)} className="text-xs text-primary font-medium mt-1 hover:underline">
+                {expandedAbout ? 'Show less' : 'Read more'}
+              </button>
+            )}
           </Section>
 
+          {/* Verdict - visible on mobile */}
           <div className="lg:hidden">
             <VerdictCard verdict={report.foodScoutVerdict} />
           </div>
 
+          {/* Pros & Cons */}
           <Section title="✅ Top Pros & Cons">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div className="space-y-1.5">
@@ -137,11 +157,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </div>
           </Section>
 
-          <Section title="💬 General Consensus">
-            <p className="text-sm text-muted-foreground leading-relaxed">{report.generalConsensus}</p>
-          </Section>
-
-          {/* Ingredients - Expandable */}
+          {/* Ingredient Analysis */}
           <div className="glass rounded-2xl overflow-hidden">
             <button
               onClick={() => setExpandedIngredients(!expandedIngredients)}
@@ -198,6 +214,37 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </AnimatePresence>
           </div>
 
+          {/* Health Verdict - default open, color coded like reference image */}
+          <div className="glass rounded-2xl overflow-hidden">
+            <button onClick={() => setShowHealth(!showHealth)} className="flex w-full items-center justify-between p-4">
+              <span className="text-sm font-semibold text-foreground">🏥 Health Verdict</span>
+              {showHealth ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </button>
+            <AnimatePresence>
+              {showHealth && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                  <div className="px-4 pb-4">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-3">Who should be careful</p>
+                    <div className="space-y-4">
+                      {Object.entries(report.healthVerdict).map(([key, val]) => (
+                        <div key={key} className="flex items-start gap-3">
+                          <div className={`mt-1 h-2.5 w-2.5 rounded-full shrink-0 ${getHealthDot(val)}`} />
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <span className="text-sm">{healthIcons[key] || '👤'}</span>
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">{healthLabels[key] || key}</span>
+                            </div>
+                            <p className={`text-sm leading-relaxed ${getHealthColor(val)}`}>{val}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
           {/* Alternatives */}
           <Section title="💡 Healthier Alternatives">
             <div className="space-y-2">
@@ -221,32 +268,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </div>
           </Section>
 
-          {/* Health Verdict */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <button onClick={() => setShowHealth(!showHealth)} className="flex w-full items-center justify-between p-4">
-              <span className="text-sm font-semibold text-foreground">🏥 Health Verdict</span>
-              {showHealth ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-            </button>
-            <AnimatePresence>
-              {showHealth && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                  <div className="px-4 pb-4 space-y-2">
-                    {Object.entries(report.healthVerdict).map(([key, val]) => (
-                      <div key={key} className="flex gap-2 text-sm">
-                        <span className="shrink-0 text-muted-foreground capitalize font-medium min-w-[80px]">{key}:</span>
-                        <span className="text-foreground/80">{val}</span>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <Section title="🛒 Buying Advice">
-            <p className="text-sm text-muted-foreground leading-relaxed">{report.buyingAdvice}</p>
-          </Section>
-
+          {/* Public Sentiment */}
           <Section title="📊 Public Sentiment">
             <div className="space-y-2">
               <div className="flex h-6 w-full overflow-hidden rounded-full">
@@ -263,20 +285,31 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </div>
           </Section>
 
-          <Section title="⭐ Top Authentic Reviews">
-            <div className="space-y-2">
-              {report.topReviews.map((review, i) => (
-                <div key={i} className={`rounded-xl border p-3 ${sentimentColors[review.sentiment]}`}>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-sm">{platformIcons[review.platform] || platformIcons.Other}</span>
-                    <span className="text-[10px] font-medium text-foreground">{review.author}</span>
-                    <span className="ml-auto">{sentimentIcons[review.sentiment]}</span>
+          {/* Top Authentic Reviews - expandable */}
+          <div className="glass rounded-2xl overflow-hidden">
+            <button onClick={() => setExpandedReviews(!expandedReviews)} className="flex w-full items-center justify-between p-4">
+              <span className="text-sm font-semibold text-foreground">⭐ Top Authentic Reviews</span>
+              {expandedReviews ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </button>
+            <AnimatePresence>
+              {expandedReviews && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                  <div className="px-4 pb-4 space-y-2">
+                    {report.topReviews.map((review, i) => (
+                      <div key={i} className={`rounded-xl border p-3 ${sentimentColors[review.sentiment]}`}>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-sm">{platformIcons[review.platform] || platformIcons.Other}</span>
+                          <span className="text-[10px] font-medium text-foreground">{review.platform}</span>
+                          <span className="text-[10px] text-muted-foreground">· {review.author}</span>
+                        </div>
+                        <p className="text-xs text-foreground/70 leading-relaxed">"{review.text}"</p>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-xs text-foreground/70 leading-relaxed">"{review.text}"</p>
-                </div>
-              ))}
-            </div>
-          </Section>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
 
         <div className="hidden lg:block space-y-3">
