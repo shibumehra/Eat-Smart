@@ -11,9 +11,9 @@ interface ScoreRingProps {
 
 function getScoreColor(score: number, max: number) {
   const pct = score / max;
-  if (pct >= 0.7) return 'hsl(160 84% 39%)';
-  if (pct >= 0.4) return 'hsl(45 93% 47%)';
-  return 'hsl(0 84% 60%)';
+  if (pct >= 0.7) return 'hsl(152 60% 42%)';
+  if (pct >= 0.4) return 'hsl(38 92% 50%)';
+  return 'hsl(0 72% 51%)';
 }
 
 export default function ScoreRing({ score, maxScore, size = 100, strokeWidth = 6, label }: ScoreRingProps) {
@@ -32,7 +32,7 @@ export default function ScoreRing({ score, maxScore, size = 100, strokeWidth = 6
     <div className="flex flex-col items-center gap-1">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
-          <circle cx={size / 2} cy={size / 2} r={radius} stroke="hsl(220 13% 88%)" strokeWidth={strokeWidth} fill="none" />
+          <circle cx={size / 2} cy={size / 2} r={radius} stroke="hsl(220 10% 90%)" strokeWidth={strokeWidth} fill="none" />
           <circle
             cx={size / 2}
             cy={size / 2}
@@ -50,7 +50,7 @@ export default function ScoreRing({ score, maxScore, size = 100, strokeWidth = 6
           <motion.span
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="font-mono text-lg font-bold text-foreground"
+            className="font-display text-lg font-bold text-foreground"
           >
             {score}
           </motion.span>
