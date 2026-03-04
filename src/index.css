@@ -32,33 +32,33 @@
 
     --border: 220 10% 88%;
     --input: 220 10% 88%;
-    --ring: 152 60% 42%;
+    --ring: 152 72% 38%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 40 25% 96%;
     --sidebar-foreground: 220 16% 30%;
-    --sidebar-primary: 152 60% 42%;
+    --sidebar-primary: 152 72% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 15% 92%;
-    --sidebar-accent-foreground: 220 16% 30%;
+    --sidebar-accent: 40 20% 90%;
+    --sidebar-accent-foreground: 220 20% 24%;
     --sidebar-border: 220 10% 88%;
-    --sidebar-ring: 152 60% 42%;
+    --sidebar-ring: 152 72% 38%;
 
     /* Custom tokens */
     --glass: 0 0% 100%;
     --glass-border: 220 10% 90%;
-    --warning: 38 92% 50%;
+    --warning: 38 95% 50%;
     --warning-foreground: 220 20% 14%;
-    --success: 152 60% 42%;
-    --caution: 38 92% 50%;
-    --harmful: 0 72% 51%;
-    --safe: 152 60% 42%;
-    --gradient-primary: linear-gradient(135deg, hsl(152 60% 42%), hsl(170 70% 38%));
+    --success: 152 72% 38%;
+    --caution: 38 95% 50%;
+    --harmful: 0 80% 55%;
+    --safe: 152 72% 38%;
+    --gradient-primary: linear-gradient(135deg, hsl(152 72% 38%), hsl(170 75% 34%));
     --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.9), hsl(40 20% 98% / 0.7));
-    --gradient-verdict: linear-gradient(135deg, hsl(152 60% 42% / 0.08), hsl(170 70% 38% / 0.03));
-    --shadow-glow: 0 0 40px hsl(152 60% 42% / 0.1);
-    --shadow-card: 0 2px 16px hsl(220 20% 14% / 0.06);
+    --gradient-verdict: linear-gradient(135deg, hsl(152 72% 38% / 0.1), hsl(170 75% 34% / 0.04));
+    --shadow-glow: 0 0 40px hsl(152 72% 38% / 0.15);
+    --shadow-card: 0 2px 16px hsl(220 20% 14% / 0.08);
   }
 }
 
@@ -87,12 +87,12 @@
   }
 
   .glow-primary {
-    box-shadow: 0 2px 16px hsl(152 60% 42% / 0.12);
+    box-shadow: 0 2px 16px hsl(152 72% 38% / 0.15);
   }
 
   .text-gradient {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(152 60% 42%), hsl(170 70% 38%));
+    background-image: linear-gradient(135deg, hsl(152 72% 38%), hsl(170 75% 34%));
   }
 
   .score-ring {
@@ -109,8 +109,8 @@
   }
 
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 12px hsl(152 60% 42% / 0.06); }
-    50% { box-shadow: 0 0 24px hsl(152 60% 42% / 0.15); }
+    0%, 100% { box-shadow: 0 0 12px hsl(152 72% 38% / 0.08); }
+    50% { box-shadow: 0 0 24px hsl(152 72% 38% / 0.2); }
   }
 
   .animate-pulse-glow {
