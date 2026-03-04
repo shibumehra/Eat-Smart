@@ -25,6 +25,7 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [notFound, setNotFound] = useState(false);
+  const [notFood, setNotFood] = useState<{ productName: string; explanation: string } | null>(null);
   const { toast } = useToast();
   const lastProductRef = useRef<string | null>(null);
 
@@ -40,6 +41,7 @@ export default function Index() {
     lastProductRef.current = name;
     setReport(null);
     setNotFound(false);
+    setNotFood(null);
     setLoading(true);
     setLoadingStep(0);
 
@@ -54,6 +56,8 @@ export default function Index() {
       if (error) throw error;
       if (data?.error === 'NOT_FOUND') {
         setNotFound(true);
+      } else if (data?.error === 'NOT_FOOD') {
+        setNotFood({ productName: data.productName || name, explanation: data.explanation || '' });
       } else {
         setReport(data as ProductReport);
       }
@@ -68,6 +72,7 @@ export default function Index() {
   const handleImageCapture = async (base64: string) => {
     setReport(null);
     setNotFound(false);
+    setNotFood(null);
     setLoading(true);
     setLoadingStep(0);
 
@@ -109,7 +114,7 @@ export default function Index() {
       <Navbar region={region} onRegionChange={setRegion} />
 
       <main className="mx-auto max-w-5xl px-4 pt-20 pb-8">
-        {!report && !loading && !notFound && (
+        {!report && !loading && !notFound && !notFood && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
             {/* Hero */}
             <div className="text-center pt-8 lg:pt-16">
@@ -179,20 +184,37 @@ export default function Index() {
           </motion.div>
         )}
 
-        {loading && <LoadingScanner currentStep={loadingStep} />}
+        {loading && <LoadingScanner currentStep={loadingStep} productName={lastProductRef.current || undefined} />}
 
         {notFound && !loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 space-y-4">
             <span className="text-5xl">🔍</span>
-            <h2 className="font-display text-xl font-bold text-foreground">Product Not Found</h2>
+            <h2 className="font-display text-xl font-bold text-foreground break-words px-4">Product Not Found</h2>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
               We couldn't find enough real data for this product. Try a more specific name, brand, or variant.
             </p>
             <button
               onClick={() => { setNotFound(false); setReport(null); }}
-              className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110"
             >
-              Search Again
+              <ArrowLeft className="h-4 w-4" /> Try a Food Product
+            </button>
+          </motion.div>
+        )}
+
+        {notFood && !loading && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 space-y-6 max-w-lg mx-auto">
+            <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">Not a Food Product</p>
+            <h2 className="font-display text-3xl font-bold text-foreground break-words px-4">{notFood.productName}</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">{notFood.explanation}</p>
+            <div className="glass rounded-2xl p-5 text-sm text-muted-foreground leading-relaxed">
+              {notFood.explanation}
+            </div>
+            <button
+              onClick={() => { setNotFood(null); setReport(null); }}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110"
+            >
+              <ArrowLeft className="h-4 w-4" /> Try a Food Product
             </button>
           </motion.div>
         )}
