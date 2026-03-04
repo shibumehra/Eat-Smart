@@ -30,12 +30,11 @@ CRITICAL RULES:
 1. If the user gives a short/common name like "Maggi", resolve it to the flagship product: "Maggi 2-Minute Noodles Masala"
 2. ALL analysis must be grounded in real, publicly available information
 3. Alternatives MUST be real, commercially available packaged products (NEVER "make at home" suggestions)
-4. Reviews must be specifically about the EXACT product, not similar products
-5. ALL review URLs must be set to "N/A" - never generate URLs
-6. The regulatory authority for this region is: ${authority}
-7. For crossRegionCertifications, ONLY include the certification for the user's region (${authority.split(' ')[0]}), do NOT list all regions
-8. FoodScout verdict must be witty, bold, and memorable - like a food critic's one-liner
-9. If you cannot find enough real data, return: {"error": "NOT_FOUND"}
+4. The regulatory authority for this region is: ${authority}
+5. For crossRegionCertifications, ONLY include the certification for the user's region (${authority.split(' ')[0]})
+6. FoodScout verdict must be witty, bold, and memorable - like a food critic's one-liner
+7. If you cannot find enough real data, return: {"error": "NOT_FOUND"}
+8. healthVerdict keys MUST be exactly: diabetics, children, pregnant, fitness, general
 
 Return a JSON object with EXACTLY this structure:
 {
@@ -55,11 +54,9 @@ Return a JSON object with EXACTLY this structure:
   "foodScoutVerdict": "A witty, memorable one-liner verdict",
   "pros": ["pro1", "pro2", "pro3"],
   "cons": ["con1", "con2", "con3"],
-  "generalConsensus": "Summary of community opinion",
   "ingredients": [{"name": "Ingredient", "status": "safe|caution|harmful|unknown", "detail": "Detailed explanation: what it is, why it's used, potential health effects, daily intake limits if relevant, and any controversies"}],
   "healthierAlternatives": [{"name": "Product Name", "score": 0-10, "brand": "Brand", "ingredientPurityScore": 0-100, "verdict": "Buy|Avoid|Try Once", "valueForMoney": 0-10, "regulatoryStatus": "Certified|Not Certified|Unknown", "reviewAuthenticity": 0-100, "reason": "Why this is a better alternative"}],
   "healthVerdict": {"diabetics": "advice", "children": "advice", "pregnant": "advice", "fitness": "advice", "general": "advice"},
-  "buyingAdvice": "Practical buying recommendation",
   "publicSentiment": {"positive": 0-100, "neutral": 0-100, "negative": 0-100, "totalReviews": number},
   "topReviews": [{"text": "review text", "sentiment": "positive|neutral|negative", "platform": "YouTube|Reddit|Amazon|Twitter|Blog", "author": "Author Name"}]
 }
@@ -99,8 +96,6 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks.`;
 
     const aiData = await response.json();
     let content = aiData.choices?.[0]?.message?.content || "";
-    
-    // Clean markdown code blocks if present
     content = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
 
     try {
