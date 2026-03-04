@@ -57,7 +57,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
         <div className="flex items-start gap-4">
           <ScoreRing score={report.overallScore} maxScore={10} size={80} strokeWidth={5} />
           <div className="flex-1 min-w-0">
-            <h2 className="font-display text-lg font-bold text-foreground truncate">{report.productName}</h2>
+            <h2 className="font-display text-lg font-bold text-foreground break-words">{report.productName}</h2>
             <p className="text-xs text-muted-foreground">{report.brand} · {report.category}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
               <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${verdictColors[report.verdict]}`}>
@@ -141,23 +141,27 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
           </div>
 
           {/* Ingredient Analysis */}
-          <div className="glass rounded-2xl overflow-hidden">
+          <div className="glass rounded-2xl p-4">
+            <h3 className="mb-3 text-sm font-semibold text-foreground">🧪 Ingredient Analysis ({report.ingredients.length})</h3>
+            {/* Ingredient Tags */}
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {report.ingredients.map((ing) => {
+                const statusIcons = { safe: '✅', caution: '⚠️', harmful: '❌', unknown: '❓' };
+                const tagColors = { safe: 'bg-safe/10 text-safe border-safe/20', caution: 'bg-caution/10 text-caution border-caution/20', harmful: 'bg-harmful/10 text-harmful border-harmful/20', unknown: 'bg-muted text-muted-foreground border-border' };
+                return (
+                  <span key={ing.name} className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium ${tagColors[ing.status]}`}>
+                    {statusIcons[ing.status]} {ing.name}
+                  </span>
+                );
+              })}
+            </div>
+            {/* View ingredient details toggle */}
             <button
               onClick={() => setExpandedIngredients(!expandedIngredients)}
-              className="flex w-full items-center justify-between p-4"
+              className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
             >
-              <span className="text-sm font-semibold text-foreground">🧪 Ingredient Analysis ({report.ingredients.length})</span>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  {['safe', 'caution', 'harmful'].map(status => {
-                    const count = report.ingredients.filter(i => i.status === status).length;
-                    if (!count) return null;
-                    const colors = { safe: 'bg-safe', caution: 'bg-caution', harmful: 'bg-harmful' };
-                    return <span key={status} className={`h-2 w-2 rounded-full ${colors[status as keyof typeof colors]}`} />;
-                  })}
-                </div>
-                {expandedIngredients ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-              </div>
+              {expandedIngredients ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              {expandedIngredients ? 'Hide details' : 'View ingredient details'}
             </button>
             <AnimatePresence>
               {expandedIngredients && (
@@ -167,28 +171,13 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden"
                 >
-                  <div className="px-4 pb-4 space-y-2">
+                  <div className="mt-3 space-y-2">
                     {report.ingredients.map((ing) => (
                       <div key={ing.name} className={`rounded-xl border p-3 ${ingredientColors[ing.status]}`}>
-                        <button
-                          onClick={() => setExpandedIngredient(expandedIngredient === ing.name ? null : ing.name)}
-                          className="flex w-full items-center justify-between"
-                        >
-                          <span className="text-xs font-semibold">{ing.name}</span>
-                          <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">{ing.status}</span>
-                        </button>
-                        <AnimatePresence>
-                          {expandedIngredient === ing.name && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                            >
-                              <p className="mt-2 text-xs leading-relaxed opacity-80">{ing.detail}</p>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                        <div className="flex items-start gap-2">
+                          <span className="text-xs font-bold whitespace-nowrap">{ing.name}</span>
+                          <p className="text-xs leading-relaxed opacity-80">{ing.detail}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
