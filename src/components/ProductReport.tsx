@@ -39,6 +39,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
   const [expandedIngredient, setExpandedIngredient] = useState<string | null>(null);
   const [showHealth, setShowHealth] = useState(true);
   const [expandedReviews, setExpandedReviews] = useState(false);
+  const [expandedPros, setExpandedPros] = useState(false);
   const [compareAlt, setCompareAlt] = useState<Alternative | null>(null);
   const [showRegTooltip, setShowRegTooltip] = useState(false);
 
@@ -74,18 +75,18 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
       <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
         <div className="glass rounded-xl p-3 text-center">
           <ScoreRing score={report.ingredientPurityScore} maxScore={100} size={56} strokeWidth={4} />
-          <p className="mt-1 text-[10px] text-muted-foreground">Ingredient Purity</p>
+          <p className="mt-1 text-[10px] font-mono text-muted-foreground">Ingredient Purity</p>
         </div>
         <div className="glass rounded-xl p-3 text-center">
           <ScoreRing score={report.reviewAuthenticity} maxScore={100} size={56} strokeWidth={4} />
-          <p className="mt-1 text-[10px] text-muted-foreground">Review Auth.</p>
+          <p className="mt-1 text-[10px] font-mono text-muted-foreground">Review Auth.</p>
         </div>
         {/* Regulatory */}
         <div className="glass rounded-xl p-3 relative">
           <div className="flex flex-col items-center">
             <span className="text-2xl">{regIcon}</span>
             <p className="mt-1 text-xs font-medium text-foreground">{report.regulatoryStatus}</p>
-            <p className="text-[10px] text-muted-foreground">{currentAuthority}</p>
+            <p className="text-[10px] font-mono text-muted-foreground">{currentAuthority}</p>
           </div>
           <button onClick={() => setShowRegTooltip(!showRegTooltip)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground z-10">
             <Info className="h-3 w-3" />
@@ -111,7 +112,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
         </div>
         <div className="glass rounded-xl p-3 text-center">
           <ScoreRing score={report.valueForMoney} maxScore={10} size={56} strokeWidth={4} />
-          <p className="mt-1 text-[10px] text-muted-foreground">Value for Money</p>
+          <p className="mt-1 text-[10px] font-mono text-muted-foreground">Value for Money</p>
         </div>
       </div>
 
@@ -135,117 +136,75 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             <VerdictCard verdict={report.foodScoutVerdict} />
           </div>
 
-          {/* Pros & Cons */}
-          <Section title="✅ Top Pros & Cons">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="space-y-1.5">
-                {report.pros.map((p, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className="text-safe mt-0.5 shrink-0">✓</span>
-                    <span className="text-foreground/80">{p}</span>
-                  </div>
-                ))}
+          {/* Ingredient Analysis */}
+          <ExpandableSection
+            title="🧪 Ingredient Analysis"
+            badge={
+              <div className="flex gap-1">
+                {['safe', 'caution', 'harmful'].map(status => {
+                  const count = report.ingredients.filter(i => i.status === status).length;
+                  if (!count) return null;
+                  const colors = { safe: 'bg-safe', caution: 'bg-caution', harmful: 'bg-harmful' };
+                  return <span key={status} className={`h-2 w-2 rounded-full ${colors[status as keyof typeof colors]}`} />;
+                })}
               </div>
-              <div className="space-y-1.5">
-                {report.cons.map((c, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className="text-harmful mt-0.5 shrink-0">✗</span>
-                    <span className="text-foreground/80">{c}</span>
+            }
+            expanded={expandedIngredients}
+            onToggle={() => setExpandedIngredients(!expandedIngredients)}
+          >
+            <div className="px-4 pb-4 space-y-2">
+              {report.ingredients.map((ing) => (
+                <div key={ing.name} className={`rounded-xl border p-3 ${ingredientColors[ing.status]}`}>
+                  <button
+                    onClick={() => setExpandedIngredient(expandedIngredient === ing.name ? null : ing.name)}
+                    className="flex w-full items-center justify-between"
+                  >
+                    <span className="text-xs font-semibold">{ing.name}</span>
+                    <span className="text-[10px] font-mono font-medium uppercase tracking-wider opacity-70">{ing.status}</span>
+                  </button>
+                  <AnimatePresence>
+                    {expandedIngredient === ing.name && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <p className="mt-2 text-xs leading-relaxed opacity-80">{ing.detail}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+            </div>
+          </ExpandableSection>
+
+          {/* Health Verdict - default open */}
+          <ExpandableSection
+            title="🏥 Health Verdict"
+            expanded={showHealth}
+            onToggle={() => setShowHealth(!showHealth)}
+          >
+            <div className="px-4 pb-4">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-3">Who should be careful</p>
+              <div className="space-y-4">
+                {Object.entries(report.healthVerdict).map(([key, val]) => (
+                  <div key={key} className="flex items-start gap-3">
+                    <div className={`mt-1 h-2.5 w-2.5 rounded-full shrink-0 ${getHealthDot(val)}`} />
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-sm">{healthIcons[key] || '👤'}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">{healthLabels[key] || key}</span>
+                      </div>
+                      <p className={`text-sm leading-relaxed ${getHealthColor(val)}`}>{val}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-          </Section>
+          </ExpandableSection>
 
-          {/* Ingredient Analysis */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <button
-              onClick={() => setExpandedIngredients(!expandedIngredients)}
-              className="flex w-full items-center justify-between p-4"
-            >
-              <span className="text-sm font-semibold text-foreground">🧪 Ingredient Analysis ({report.ingredients.length})</span>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1">
-                  {['safe', 'caution', 'harmful'].map(status => {
-                    const count = report.ingredients.filter(i => i.status === status).length;
-                    if (!count) return null;
-                    const colors = { safe: 'bg-safe', caution: 'bg-caution', harmful: 'bg-harmful' };
-                    return <span key={status} className={`h-2 w-2 rounded-full ${colors[status as keyof typeof colors]}`} />;
-                  })}
-                </div>
-                {expandedIngredients ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-              </div>
-            </button>
-            <AnimatePresence>
-              {expandedIngredients && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="px-4 pb-4 space-y-2">
-                    {report.ingredients.map((ing) => (
-                      <div key={ing.name} className={`rounded-xl border p-3 ${ingredientColors[ing.status]}`}>
-                        <button
-                          onClick={() => setExpandedIngredient(expandedIngredient === ing.name ? null : ing.name)}
-                          className="flex w-full items-center justify-between"
-                        >
-                          <span className="text-xs font-semibold">{ing.name}</span>
-                          <span className="text-[10px] font-medium uppercase tracking-wider opacity-70">{ing.status}</span>
-                        </button>
-                        <AnimatePresence>
-                          {expandedIngredient === ing.name && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              className="overflow-hidden"
-                            >
-                              <p className="mt-2 text-xs leading-relaxed opacity-80">{ing.detail}</p>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Health Verdict - default open, color coded like reference image */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <button onClick={() => setShowHealth(!showHealth)} className="flex w-full items-center justify-between p-4">
-              <span className="text-sm font-semibold text-foreground">🏥 Health Verdict</span>
-              {showHealth ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-            </button>
-            <AnimatePresence>
-              {showHealth && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                  <div className="px-4 pb-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-3">Who should be careful</p>
-                    <div className="space-y-4">
-                      {Object.entries(report.healthVerdict).map(([key, val]) => (
-                        <div key={key} className="flex items-start gap-3">
-                          <div className={`mt-1 h-2.5 w-2.5 rounded-full shrink-0 ${getHealthDot(val)}`} />
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="text-sm">{healthIcons[key] || '👤'}</span>
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">{healthLabels[key] || key}</span>
-                            </div>
-                            <p className={`text-sm leading-relaxed ${getHealthColor(val)}`}>{val}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Alternatives */}
+          {/* Healthier Alternatives */}
           <Section title="💡 Healthier Alternatives">
             <div className="space-y-2">
               {report.healthierAlternatives.map((alt) => (
@@ -268,6 +227,34 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </div>
           </Section>
 
+          {/* Top Pros & Cons - expandable, after alternatives */}
+          <ExpandableSection
+            title="✅ Top Pros & Cons"
+            expanded={expandedPros}
+            onToggle={() => setExpandedPros(!expandedPros)}
+          >
+            <div className="px-4 pb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="space-y-1.5">
+                  {report.pros.map((p, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm">
+                      <span className="text-safe mt-0.5 shrink-0">✓</span>
+                      <span className="text-foreground/80">{p}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="space-y-1.5">
+                  {report.cons.map((c, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm">
+                      <span className="text-harmful mt-0.5 shrink-0">✗</span>
+                      <span className="text-foreground/80">{c}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </ExpandableSection>
+
           {/* Public Sentiment */}
           <Section title="📊 Public Sentiment">
             <div className="space-y-2">
@@ -286,30 +273,24 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
           </Section>
 
           {/* Top Authentic Reviews - expandable */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <button onClick={() => setExpandedReviews(!expandedReviews)} className="flex w-full items-center justify-between p-4">
-              <span className="text-sm font-semibold text-foreground">⭐ Top Authentic Reviews</span>
-              {expandedReviews ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-            </button>
-            <AnimatePresence>
-              {expandedReviews && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                  <div className="px-4 pb-4 space-y-2">
-                    {report.topReviews.map((review, i) => (
-                      <div key={i} className={`rounded-xl border p-3 ${sentimentColors[review.sentiment]}`}>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-sm">{platformIcons[review.platform] || platformIcons.Other}</span>
-                          <span className="text-[10px] font-medium text-foreground">{review.platform}</span>
-                          <span className="text-[10px] text-muted-foreground">· {review.author}</span>
-                        </div>
-                        <p className="text-xs text-foreground/70 leading-relaxed">"{review.text}"</p>
-                      </div>
-                    ))}
+          <ExpandableSection
+            title="⭐ Top Authentic Reviews"
+            expanded={expandedReviews}
+            onToggle={() => setExpandedReviews(!expandedReviews)}
+          >
+            <div className="px-4 pb-4 space-y-2">
+              {report.topReviews.map((review, i) => (
+                <div key={i} className={`rounded-xl border p-3 ${sentimentColors[review.sentiment]}`}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-sm">{platformIcons[review.platform] || platformIcons.Other}</span>
+                    <span className="text-[10px] font-medium text-foreground">{review.platform}</span>
+                    <span className="text-[10px] text-muted-foreground">· {review.author}</span>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                  <p className="text-xs text-foreground/70 leading-relaxed">"{review.text}"</p>
+                </div>
+              ))}
+            </div>
+          </ExpandableSection>
         </div>
 
         <div className="hidden lg:block space-y-3">
@@ -329,6 +310,32 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     <div className="glass rounded-2xl p-4">
       <h3 className="mb-3 text-sm font-semibold text-foreground">{title}</h3>
       {children}
+    </div>
+  );
+}
+
+function ExpandableSection({ title, children, expanded, onToggle, badge }: { title: string; children: React.ReactNode; expanded: boolean; onToggle: () => void; badge?: React.ReactNode }) {
+  return (
+    <div className="glass rounded-2xl overflow-hidden">
+      <button onClick={onToggle} className="flex w-full items-center justify-between p-4">
+        <span className="text-sm font-semibold text-foreground">{title}</span>
+        <div className="flex items-center gap-2">
+          {badge}
+          {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+        </div>
+      </button>
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
