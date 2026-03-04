@@ -174,10 +174,8 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
                   <div className="mt-3 space-y-2">
                     {report.ingredients.map((ing) => (
                       <div key={ing.name} className={`rounded-xl border p-3 ${ingredientColors[ing.status]}`}>
-                        <div className="flex items-start gap-2">
-                          <span className="text-xs font-bold whitespace-nowrap">{ing.name}</span>
-                          <p className="text-xs leading-relaxed opacity-80">{ing.detail}</p>
-                        </div>
+                        <p className="text-xs font-bold mb-1">{ing.name}</p>
+                        <p className="text-xs leading-relaxed opacity-80 break-words">{ing.detail}</p>
                       </div>
                     ))}
                   </div>
