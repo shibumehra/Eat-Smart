@@ -7,7 +7,12 @@ const steps = [
   { label: 'Building report', emoji: '💬' },
 ];
 
-export default function LoadingScanner({ currentStep = 0 }: { currentStep?: number }) {
+interface LoadingScannerProps {
+  currentStep?: number;
+  productName?: string;
+}
+
+export default function LoadingScanner({ currentStep = 0, productName }: LoadingScannerProps) {
   const progress = ((currentStep + 1) / steps.length) * 100;
   const radius = 44;
   const circumference = 2 * Math.PI * radius;
