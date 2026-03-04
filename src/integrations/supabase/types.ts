@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      product_cache: {
+        Row: {
+          created_at: string
+          id: string
+          product_key: string
+          region: string
+          result: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_key: string
+          region: string
+          result: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_key?: string
+          region?: string
+          result?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
