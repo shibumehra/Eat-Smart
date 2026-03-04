@@ -204,12 +204,10 @@ export default function Index() {
 
         {notFood && !loading && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 space-y-6 max-w-lg mx-auto">
+            <span className="text-5xl">🚫</span>
             <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">Not a Food Product</p>
-            <h2 className="font-display text-3xl font-bold text-foreground break-words px-4">{notFood.productName}</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">{notFood.explanation}</p>
-            <div className="glass rounded-2xl p-5 text-sm text-muted-foreground leading-relaxed">
-              {notFood.explanation}
-            </div>
+            <h2 className="font-display text-2xl font-bold text-foreground break-words px-4">{notFood.productName}</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed px-4">{notFood.explanation}</p>
             <button
               onClick={() => { setNotFood(null); setReport(null); }}
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110"
