@@ -71,6 +71,7 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks.`;
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
+        temperature: 0,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Analyze the food product: "${productName}" for the ${region} region. Provide comprehensive analysis grounded in real data.` },
