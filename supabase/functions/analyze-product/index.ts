@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +22,28 @@ serve(async (req) => {
     const { productName, region } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    // Normalize product key for cache lookup
+    const productKey = productName.trim().toLowerCase().replace(/\s+/g, ' ');
+
+    // Check cache first
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const sb = createClient(supabaseUrl, supabaseKey);
+
+    const { data: cached } = await sb
+      .from("product_cache")
+      .select("result")
+      .eq("product_key", productKey)
+      .eq("region", region)
+      .maybeSingle();
+
+    if (cached?.result) {
+      console.log("Cache hit for:", productKey);
+      return new Response(JSON.stringify(cached.result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const authority = REGION_MAP[region] || REGION_MAP["IN"];
 
@@ -101,6 +124,10 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks.`;
 
     try {
       const parsed = JSON.parse(content);
+      // Cache the result (fire and forget)
+      sb.from("product_cache").insert({ product_key: productKey, region, result: parsed }).then(() => {
+        console.log("Cached result for:", productKey);
+      });
       return new Response(JSON.stringify(parsed), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
