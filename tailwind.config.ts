@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -51,10 +52,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        glass: {
-          DEFAULT: "hsl(var(--glass))",
-          border: "hsl(var(--glass-border))",
-        },
         warning: {
           DEFAULT: "hsl(var(--warning))",
           foreground: "hsl(var(--warning-foreground))",
@@ -62,6 +59,18 @@ export default {
         safe: "hsl(var(--safe))",
         caution: "hsl(var(--caution))",
         harmful: "hsl(var(--harmful))",
+        ink: "hsl(var(--ink))",
+        cream: "hsl(var(--cream))",
+        amber: "hsl(var(--amber))",
+        sage: "hsl(var(--sage))",
+        "amber-glow": "hsl(var(--amber-glow))",
+        "sage-light": "hsl(var(--sage-light))",
+        "ink-light": "hsl(var(--ink-light))",
+        neon: "hsl(var(--neon))",
+        cyber: "hsl(var(--cyber))",
+        "score-green": "hsl(var(--score-green))",
+        "score-yellow": "hsl(var(--score-yellow))",
+        "score-red": "hsl(var(--score-red))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
