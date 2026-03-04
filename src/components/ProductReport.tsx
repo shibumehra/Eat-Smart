@@ -40,6 +40,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
   const [showHealth, setShowHealth] = useState(true);
   const [expandedReviews, setExpandedReviews] = useState(false);
   const [compareAlt, setCompareAlt] = useState<Alternative | null>(null);
+  const [expandedPros, setExpandedPros] = useState(false);
   const [showRegTooltip, setShowRegTooltip] = useState(false);
 
   const regIcon = report.regulatoryStatus === 'Certified' ? '✅' : report.regulatoryStatus === 'Not Certified' ? '❌' : '⚠️';
