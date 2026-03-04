@@ -124,6 +124,10 @@ IMPORTANT: Return ONLY valid JSON. No markdown, no code blocks.`;
 
     try {
       const parsed = JSON.parse(content);
+      // Cache the result (fire and forget)
+      sb.from("product_cache").insert({ product_key: productKey, region, result: parsed }).then(() => {
+        console.log("Cached result for:", productKey);
+      });
       return new Response(JSON.stringify(parsed), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
