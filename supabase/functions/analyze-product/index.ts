@@ -57,7 +57,8 @@ CRITICAL RULES:
 5. For crossRegionCertifications, ONLY include the certification for the user's region (${authority.split(' ')[0]})
 6. FoodScout verdict must be witty, bold, and memorable - like a food critic's one-liner
 7. If you cannot find enough real data, return: {"error": "NOT_FOUND"}
-8. healthVerdict keys MUST be exactly: diabetics, children, pregnant, fitness, general
+8. If the product is NOT a food item (e.g. medicine, electronics, clothing, etc.), return: {"error": "NOT_FOOD", "productName": "Product Name", "explanation": "Brief explanation of what the product actually is and why it's not a food product"}
+9. healthVerdict keys MUST be exactly: diabetics, children, pregnant, fitness, general
 
 Return a JSON object with EXACTLY this structure:
 {

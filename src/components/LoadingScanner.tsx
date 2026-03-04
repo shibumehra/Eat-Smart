@@ -7,7 +7,12 @@ const steps = [
   { label: 'Building report', emoji: '💬' },
 ];
 
-export default function LoadingScanner({ currentStep = 0 }: { currentStep?: number }) {
+interface LoadingScannerProps {
+  currentStep?: number;
+  productName?: string;
+}
+
+export default function LoadingScanner({ currentStep = 0, productName }: LoadingScannerProps) {
   const progress = ((currentStep + 1) / steps.length) * 100;
   const radius = 44;
   const circumference = 2 * Math.PI * radius;
@@ -51,6 +56,18 @@ export default function LoadingScanner({ currentStep = 0 }: { currentStep?: numb
           </span>
         </div>
       </div>
+
+      {/* Product name */}
+      {productName && (
+        <div className="text-center px-4">
+          <h2 className="font-display text-2xl font-bold text-foreground break-words">
+            Analyzing {productName}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Scanning ingredients, reviews, regulations & expert opinions with AI
+          </p>
+        </div>
+      )}
 
       {/* Steps appearing one by one */}
       <div className="space-y-2.5 w-full max-w-xs">
