@@ -115,10 +115,11 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content - 2 col layout on desktop */}
       <div className="lg:grid lg:grid-cols-3 lg:gap-4 space-y-3 lg:space-y-0">
+        {/* Main column */}
         <div className="lg:col-span-2 space-y-3">
-          {/* About - truncated */}
+          {/* About */}
           <Section title="📋 About This Product">
             <p className="text-sm text-muted-foreground leading-relaxed">
               {expandedAbout ? report.about : report.about.slice(0, 120) + (report.about.length > 120 ? '...' : '')}
@@ -130,32 +131,13 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             )}
           </Section>
 
-          {/* Verdict - visible on mobile */}
+          {/* Verdict & Health Verdict - mobile only */}
           <div className="lg:hidden">
             <VerdictCard verdict={report.foodScoutVerdict} />
           </div>
-
-          {/* Pros & Cons */}
-          <Section title="✅ Top Pros & Cons">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="space-y-1.5">
-                {report.pros.map((p, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className="text-safe mt-0.5 shrink-0">✓</span>
-                    <span className="text-foreground/80">{p}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-1.5">
-                {report.cons.map((c, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className="text-harmful mt-0.5 shrink-0">✗</span>
-                    <span className="text-foreground/80">{c}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Section>
+          <div className="lg:hidden">
+            <HealthVerdictSection report={report} showHealth={showHealth} setShowHealth={setShowHealth} />
+          </div>
 
           {/* Ingredient Analysis */}
           <div className="glass rounded-2xl overflow-hidden">
@@ -214,37 +196,6 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </AnimatePresence>
           </div>
 
-          {/* Health Verdict - default open, color coded like reference image */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <button onClick={() => setShowHealth(!showHealth)} className="flex w-full items-center justify-between p-4">
-              <span className="text-sm font-semibold text-foreground">🏥 Health Verdict</span>
-              {showHealth ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-            </button>
-            <AnimatePresence>
-              {showHealth && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                  <div className="px-4 pb-4">
-                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-3">Who should be careful</p>
-                    <div className="space-y-4">
-                      {Object.entries(report.healthVerdict).map(([key, val]) => (
-                        <div key={key} className="flex items-start gap-3">
-                          <div className={`mt-1 h-2.5 w-2.5 rounded-full shrink-0 ${getHealthDot(val)}`} />
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="text-sm">{healthIcons[key] || '👤'}</span>
-                              <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">{healthLabels[key] || key}</span>
-                            </div>
-                            <p className={`text-sm leading-relaxed ${getHealthColor(val)}`}>{val}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
           {/* Alternatives */}
           <Section title="💡 Healthier Alternatives">
             <div className="space-y-2">
@@ -268,6 +219,28 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </div>
           </Section>
 
+          {/* Pros & Cons - now below alternatives */}
+          <Section title="✅ Top Pros & Cons">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="space-y-1.5">
+                {report.pros.map((p, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <span className="text-safe mt-0.5 shrink-0">✓</span>
+                    <span className="text-foreground/80">{p}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="space-y-1.5">
+                {report.cons.map((c, i) => (
+                  <div key={i} className="flex items-start gap-2 text-sm">
+                    <span className="text-harmful mt-0.5 shrink-0">✗</span>
+                    <span className="text-foreground/80">{c}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Section>
+
           {/* Public Sentiment */}
           <Section title="📊 Public Sentiment">
             <div className="space-y-2">
@@ -285,7 +258,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </div>
           </Section>
 
-          {/* Top Authentic Reviews - expandable */}
+          {/* Reviews */}
           <div className="glass rounded-2xl overflow-hidden">
             <button onClick={() => setExpandedReviews(!expandedReviews)} className="flex w-full items-center justify-between p-4">
               <span className="text-sm font-semibold text-foreground">⭐ Top Authentic Reviews</span>
@@ -312,8 +285,10 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
           </div>
         </div>
 
+        {/* Desktop sidebar: Verdict + Health Verdict */}
         <div className="hidden lg:block space-y-3">
           <VerdictCard verdict={report.foodScoutVerdict} />
+          <HealthVerdictSection report={report} showHealth={showHealth} setShowHealth={setShowHealth} />
         </div>
       </div>
 
@@ -340,6 +315,40 @@ function VerdictCard({ verdict }: { verdict: string }) {
         <Shield className="h-3.5 w-3.5" /> FoodScout's Verdict
       </h3>
       <p className="text-sm font-medium italic text-foreground/90 leading-relaxed">"{verdict}"</p>
+    </div>
+  );
+}
+
+function HealthVerdictSection({ report, showHealth, setShowHealth }: { report: ReportType; showHealth: boolean; setShowHealth: (v: boolean) => void }) {
+  return (
+    <div className="glass rounded-2xl overflow-hidden">
+      <button onClick={() => setShowHealth(!showHealth)} className="flex w-full items-center justify-between p-4">
+        <span className="text-sm font-semibold text-foreground">🏥 Health Verdict</span>
+        {showHealth ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+      </button>
+      <AnimatePresence>
+        {showHealth && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="px-4 pb-4">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold mb-3">Who should be careful</p>
+              <div className="space-y-4">
+                {Object.entries(report.healthVerdict).map(([key, val]) => (
+                  <div key={key} className="flex items-start gap-3">
+                    <div className={`mt-1 h-2.5 w-2.5 rounded-full shrink-0 ${getHealthDot(val)}`} />
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-sm">{healthIcons[key] || '👤'}</span>
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-foreground">{healthLabels[key] || key}</span>
+                      </div>
+                      <p className={`text-sm leading-relaxed ${getHealthColor(val)}`}>{val}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

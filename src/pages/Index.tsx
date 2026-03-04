@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import SearchBar from '@/components/SearchBar';
@@ -8,8 +8,16 @@ import { detectRegion, RegionCode } from '@/lib/regions';
 import { ProductReport } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Shield, Sparkles, Scan, Globe } from 'lucide-react';
 
 const TRENDING = ['Maggi Noodles', 'Coca-Cola', 'Amul Butter', 'Lays Classic', 'Bournvita', 'Kurkure', 'Parle-G', 'Red Bull'];
+
+const FEATURES = [
+  { icon: Scan, title: 'AI-Powered Analysis', desc: 'Deep ingredient scanning powered by advanced AI models and real web data.' },
+  { icon: Shield, title: 'Safety Verdicts', desc: 'Get health verdicts for diabetics, children, pregnant women & fitness enthusiasts.' },
+  { icon: Globe, title: 'Region-Aware', desc: 'Certifications mapped to FSSAI, FDA, FSA & more based on your location.' },
+  { icon: Sparkles, title: 'Smart Alternatives', desc: 'Discover healthier swaps with side-by-side comparison scores.' },
+];
 
 export default function Index() {
   const [region, setRegion] = useState<RegionCode>(detectRegion());
@@ -18,8 +26,18 @@ export default function Index() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [notFound, setNotFound] = useState(false);
   const { toast } = useToast();
+  const lastProductRef = useRef<string | null>(null);
+
+  // Re-analyze when region changes and a report is showing
+  useEffect(() => {
+    if (lastProductRef.current && report) {
+      analyzeProduct(lastProductRef.current);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [region]);
 
   const analyzeProduct = async (name: string) => {
+    lastProductRef.current = name;
     setReport(null);
     setNotFound(false);
     setLoading(true);
@@ -75,6 +93,7 @@ export default function Index() {
       if (data?.error === 'NOT_FOUND') {
         setNotFound(true);
       } else {
+        lastProductRef.current = idData.productName;
         setReport(data as ProductReport);
       }
     } catch (err: any) {
@@ -91,14 +110,17 @@ export default function Index() {
 
       <main className="mx-auto max-w-5xl px-4 pt-20 pb-8">
         {!report && !loading && !notFound && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
             {/* Hero */}
             <div className="text-center pt-8 lg:pt-16">
-              <h1 className="font-display text-3xl font-bold text-foreground lg:text-5xl">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary mb-4">
+                <Sparkles className="h-3 w-3" /> AI-Powered Food Intelligence
+              </div>
+              <h1 className="font-display text-4xl font-bold text-foreground lg:text-6xl leading-tight">
                 Know What You <span className="text-gradient">Eat</span>
               </h1>
-              <p className="mt-3 text-sm text-muted-foreground lg:text-base max-w-md mx-auto">
-                AI-powered food analysis grounded in real-time web data. Scan any product for the truth.
+              <p className="mt-4 text-sm text-muted-foreground lg:text-lg max-w-lg mx-auto leading-relaxed">
+                Scan any food product for ingredients, safety scores, regulatory status & healthier alternatives — all grounded in real data.
               </p>
             </div>
 
@@ -115,10 +137,42 @@ export default function Index() {
                   <button
                     key={name}
                     onClick={() => analyzeProduct(name)}
-                    className="shrink-0 rounded-full border border-border bg-muted/50 px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-primary/30 hover:text-primary hover:bg-primary/5"
+                    className="shrink-0 rounded-full border border-border bg-muted/50 px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-primary/40 hover:text-primary hover:bg-primary/5 hover:shadow-sm"
                   >
                     {name}
                   </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Feature Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {FEATURES.map((f, i) => (
+                <motion.div
+                  key={f.title}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + i * 0.08 }}
+                  className="glass rounded-2xl p-4 text-center space-y-2 hover:shadow-md transition-shadow"
+                >
+                  <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                    <f.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <h4 className="text-sm font-semibold text-foreground">{f.title}</h4>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{f.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* How it works */}
+            <div className="text-center space-y-4">
+              <h2 className="font-display text-lg font-bold text-foreground">How It Works</h2>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
+                {['Search or scan a product', 'AI analyzes ingredients & reviews', 'Get your health verdict'].map((step, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">{i + 1}</span>
+                    <span className="text-sm text-foreground/80">{step}</span>
+                  </div>
                 ))}
               </div>
             </div>
