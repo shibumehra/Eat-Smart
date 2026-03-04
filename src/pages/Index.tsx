@@ -8,7 +8,7 @@ import { detectRegion, RegionCode } from '@/lib/regions';
 import { ProductReport } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Sparkles, Scan, Globe } from 'lucide-react';
+import { Shield, Sparkles, Scan, Globe, ArrowLeft } from 'lucide-react';
 
 const TRENDING = ['Maggi Noodles', 'Coca-Cola', 'Amul Butter', 'Lays Classic', 'Bournvita', 'Kurkure', 'Parle-G', 'Red Bull'];
 
