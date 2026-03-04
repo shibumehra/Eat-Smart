@@ -219,27 +219,37 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </div>
           </Section>
 
-          {/* Pros & Cons - now below alternatives */}
-          <Section title="✅ Top Pros & Cons">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div className="space-y-1.5">
-                {report.pros.map((p, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className="text-safe mt-0.5 shrink-0">✓</span>
-                    <span className="text-foreground/80">{p}</span>
+          {/* Pros & Cons - expandable */}
+          <div className="glass rounded-2xl overflow-hidden">
+            <button onClick={() => setExpandedPros(!expandedPros)} className="flex w-full items-center justify-between p-4">
+              <span className="text-sm font-semibold text-foreground">✅ Top Pros & Cons</span>
+              {expandedPros ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+            </button>
+            <AnimatePresence>
+              {expandedPros && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                  <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="space-y-1.5">
+                      {report.pros.map((p, i) => (
+                        <div key={i} className="flex items-start gap-2 text-sm">
+                          <span className="text-safe mt-0.5 shrink-0">✓</span>
+                          <span className="text-foreground/80">{p}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="space-y-1.5">
+                      {report.cons.map((c, i) => (
+                        <div key={i} className="flex items-start gap-2 text-sm">
+                          <span className="text-harmful mt-0.5 shrink-0">✗</span>
+                          <span className="text-foreground/80">{c}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
-              <div className="space-y-1.5">
-                {report.cons.map((c, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className="text-harmful mt-0.5 shrink-0">✗</span>
-                    <span className="text-foreground/80">{c}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Section>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Public Sentiment */}
           <Section title="📊 Public Sentiment">
