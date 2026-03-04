@@ -57,6 +57,18 @@ export default function LoadingScanner({ currentStep = 0, productName }: Loading
         </div>
       </div>
 
+      {/* Product name */}
+      {productName && (
+        <div className="text-center px-4">
+          <h2 className="font-display text-2xl font-bold text-foreground break-words">
+            Analyzing {productName}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Scanning ingredients, reviews, regulations & expert opinions with AI
+          </p>
+        </div>
+      )}
+
       {/* Steps appearing one by one */}
       <div className="space-y-2.5 w-full max-w-xs">
         {steps.map((step, i) => (
