@@ -23,6 +23,28 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    // Normalize product key for cache lookup
+    const productKey = productName.trim().toLowerCase().replace(/\s+/g, ' ');
+
+    // Check cache first
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const sb = createClient(supabaseUrl, supabaseKey);
+
+    const { data: cached } = await sb
+      .from("product_cache")
+      .select("result")
+      .eq("product_key", productKey)
+      .eq("region", region)
+      .maybeSingle();
+
+    if (cached?.result) {
+      console.log("Cache hit for:", productKey);
+      return new Response(JSON.stringify(cached.result), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const authority = REGION_MAP[region] || REGION_MAP["IN"];
 
     const systemPrompt = `You are FoodScout, an AI food product analyst. You MUST analyze products based ONLY on real, verifiable information. Never fabricate data.
