@@ -75,7 +75,7 @@ Return a JSON object with EXACTLY this structure:
   "crossRegionCertifications": {"${authority.split(' ')[0]}": "Certified/Not Certified/Unknown with brief reason"},
   "valueForMoney": 0-10,
   "about": "2-3 sentence description of the product",
-  "foodScoutVerdict": "A witty, memorable one-liner verdict",
+  "foodScoutVerdict": "A witty, memorable one-liner EatSmart verdict",
   "pros": ["pro1", "pro2", "pro3"],
   "cons": ["con1", "con2", "con3"],
   "ingredients": [{"name": "Ingredient", "status": "safe|caution|harmful|unknown", "detail": "Detailed explanation: what it is, why it's used, potential health effects, daily intake limits if relevant, and any controversies"}],
