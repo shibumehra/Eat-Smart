@@ -283,7 +283,7 @@ function VerdictCard({ verdict }: { verdict: string }) {
   return (
     <div className="rounded-2xl p-4 border border-primary/20" style={{ background: 'var(--gradient-verdict)' }}>
       <h3 className="mb-2 text-xs font-semibold text-primary flex items-center gap-1.5">
-        <Shield className="h-3.5 w-3.5" /> FoodScout's Verdict
+        <Shield className="h-3.5 w-3.5" /> EatSmart's Verdict
       </h3>
       <p className="text-sm font-medium italic text-foreground/90 leading-relaxed">"{verdict}"</p>
     </div>
