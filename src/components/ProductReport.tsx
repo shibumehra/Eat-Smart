@@ -38,7 +38,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
   const [expandedIngredients, setExpandedIngredients] = useState(false);
   const [expandedIngredient, setExpandedIngredient] = useState<string | null>(null);
   const [showHealth, setShowHealth] = useState(true);
-  const [expandedReviews, setExpandedReviews] = useState(false);
+  
   const [compareAlt, setCompareAlt] = useState<Alternative | null>(null);
   const [expandedPros, setExpandedPros] = useState(false);
   const [showRegTooltip, setShowRegTooltip] = useState(false);
@@ -47,8 +47,6 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
   const regionAuthority: Record<string, string> = { IN: 'FSSAI', US: 'FDA', UK: 'FSA', EU: 'EFSA', AU: 'FSANZ', CA: 'CFIA' };
   const currentAuthority = regionAuthority[region || 'IN'] || 'FSSAI';
 
-  const platformIcons: Record<string, string> = { YouTube: '📺', Reddit: '🟠', Amazon: '📦', Twitter: '🐦', Blog: '📝', Other: '🌐' };
-  const sentimentColors = { positive: 'border-safe/30 bg-safe/5', negative: 'border-harmful/30 bg-harmful/5', neutral: 'border-caution/30 bg-caution/5' };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 pb-8">
@@ -97,7 +95,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute top-full left-1/2 -translate-x-1/2 z-50 mt-2 w-64 bg-card rounded-lg p-3 text-[10px] text-muted-foreground shadow-lg border border-border"
+                className="absolute right-0 z-50 mt-2 w-64 bg-card rounded-lg p-3 text-[10px] text-muted-foreground shadow-lg border border-border"
               >
                 <div className="flex items-center justify-between mb-1">
                   <p className="font-medium text-foreground">Regulatory Info ({currentAuthority})</p>
@@ -256,31 +254,6 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </div>
           </Section>
 
-          {/* Reviews */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <button onClick={() => setExpandedReviews(!expandedReviews)} className="flex w-full items-center justify-between p-4">
-              <span className="text-sm font-semibold text-foreground">⭐ Top Authentic Reviews</span>
-              {expandedReviews ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-            </button>
-            <AnimatePresence>
-              {expandedReviews && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                  <div className="px-4 pb-4 space-y-2">
-                    {report.topReviews.map((review, i) => (
-                      <div key={i} className={`rounded-xl border p-3 ${sentimentColors[review.sentiment]}`}>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-sm">{platformIcons[review.platform] || platformIcons.Other}</span>
-                          <span className="text-[10px] font-medium text-foreground">{review.platform}</span>
-                          <span className="text-[10px] text-muted-foreground">· {review.author}</span>
-                        </div>
-                        <p className="text-xs text-foreground/70 leading-relaxed">"{review.text}"</p>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
 
         {/* Desktop sidebar: Verdict + Health Verdict */}
@@ -310,7 +283,7 @@ function VerdictCard({ verdict }: { verdict: string }) {
   return (
     <div className="rounded-2xl p-4 border border-primary/20" style={{ background: 'var(--gradient-verdict)' }}>
       <h3 className="mb-2 text-xs font-semibold text-primary flex items-center gap-1.5">
-        <Shield className="h-3.5 w-3.5" /> FoodScout's Verdict
+        <Shield className="h-3.5 w-3.5" /> EatSmart's Verdict
       </h3>
       <p className="text-sm font-medium italic text-foreground/90 leading-relaxed">"{verdict}"</p>
     </div>

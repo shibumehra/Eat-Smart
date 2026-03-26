@@ -21,7 +21,7 @@ export default function Navbar({ region, onRegionChange }: NavbarProps) {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <button onClick={() => navigate('/')} className="font-display text-xl font-bold text-gradient">
-          FoodScout
+          EatSmart
         </button>
 
         <div className="flex items-center gap-2">

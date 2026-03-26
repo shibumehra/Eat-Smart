@@ -47,7 +47,7 @@ serve(async (req) => {
 
     const authority = REGION_MAP[region] || REGION_MAP["IN"];
 
-    const systemPrompt = `You are FoodScout, an AI food product analyst. You MUST analyze products based ONLY on real, verifiable information. Never fabricate data.
+    const systemPrompt = `You are EatSmart, an AI food product analyst. You MUST analyze products based ONLY on real, verifiable information. Never fabricate data.
 
 CRITICAL RULES:
 1. If the user gives a short/common name like "Maggi", resolve it to the flagship product: "Maggi 2-Minute Noodles Masala"
@@ -55,7 +55,7 @@ CRITICAL RULES:
 3. Alternatives MUST be real, commercially available packaged products (NEVER "make at home" suggestions)
 4. The regulatory authority for this region is: ${authority}
 5. For crossRegionCertifications, ONLY include the certification for the user's region (${authority.split(' ')[0]})
-6. FoodScout verdict must be witty, bold, and memorable - like a food critic's one-liner
+6. EatSmart verdict must be witty, bold, and memorable - like a food critic's one-liner
 7. If you cannot find enough real data, return: {"error": "NOT_FOUND"}
 8. If the product is NOT a food item (e.g. medicine, electronics, clothing, etc.), return: {"error": "NOT_FOOD", "productName": "Product Name", "explanation": "Brief explanation of what the product actually is and why it's not a food product"}
 9. healthVerdict keys MUST be exactly: diabetics, children, pregnant, fitness, general
@@ -75,7 +75,7 @@ Return a JSON object with EXACTLY this structure:
   "crossRegionCertifications": {"${authority.split(' ')[0]}": "Certified/Not Certified/Unknown with brief reason"},
   "valueForMoney": 0-10,
   "about": "2-3 sentence description of the product",
-  "foodScoutVerdict": "A witty, memorable one-liner verdict",
+  "foodScoutVerdict": "A witty, memorable one-liner EatSmart verdict",
   "pros": ["pro1", "pro2", "pro3"],
   "cons": ["con1", "con2", "con3"],
   "ingredients": [{"name": "Ingredient", "status": "safe|caution|harmful|unknown", "detail": "Detailed explanation: what it is, why it's used, potential health effects, daily intake limits if relevant, and any controversies"}],

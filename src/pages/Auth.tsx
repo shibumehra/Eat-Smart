@@ -64,7 +64,7 @@ export default function Auth() {
       >
         {/* Logo */}
         <div className="mb-8 text-center">
-          <h1 className="font-display text-4xl font-bold text-gradient">FoodScout</h1>
+          <h1 className="font-display text-4xl font-bold text-gradient">EatSmart</h1>
           <p className="mt-2 text-muted-foreground text-sm">Know what you eat</p>
         </div>
 
