@@ -256,31 +256,6 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
             </div>
           </Section>
 
-          {/* Reviews */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <button onClick={() => setExpandedReviews(!expandedReviews)} className="flex w-full items-center justify-between p-4">
-              <span className="text-sm font-semibold text-foreground">⭐ Top Authentic Reviews</span>
-              {expandedReviews ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-            </button>
-            <AnimatePresence>
-              {expandedReviews && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                  <div className="px-4 pb-4 space-y-2">
-                    {report.topReviews.map((review, i) => (
-                      <div key={i} className={`rounded-xl border p-3 ${sentimentColors[review.sentiment]}`}>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-sm">{platformIcons[review.platform] || platformIcons.Other}</span>
-                          <span className="text-[10px] font-medium text-foreground">{review.platform}</span>
-                          <span className="text-[10px] text-muted-foreground">· {review.author}</span>
-                        </div>
-                        <p className="text-xs text-foreground/70 leading-relaxed">"{review.text}"</p>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
 
         {/* Desktop sidebar: Verdict + Health Verdict */}
