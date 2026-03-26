@@ -38,7 +38,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
   const [expandedIngredients, setExpandedIngredients] = useState(false);
   const [expandedIngredient, setExpandedIngredient] = useState<string | null>(null);
   const [showHealth, setShowHealth] = useState(true);
-  const [expandedReviews, setExpandedReviews] = useState(false);
+  
   const [compareAlt, setCompareAlt] = useState<Alternative | null>(null);
   const [expandedPros, setExpandedPros] = useState(false);
   const [showRegTooltip, setShowRegTooltip] = useState(false);
