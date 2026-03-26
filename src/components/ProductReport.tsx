@@ -47,8 +47,6 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
   const regionAuthority: Record<string, string> = { IN: 'FSSAI', US: 'FDA', UK: 'FSA', EU: 'EFSA', AU: 'FSANZ', CA: 'CFIA' };
   const currentAuthority = regionAuthority[region || 'IN'] || 'FSSAI';
 
-  const platformIcons: Record<string, string> = { YouTube: '📺', Reddit: '🟠', Amazon: '📦', Twitter: '🐦', Blog: '📝', Other: '🌐' };
-  const sentimentColors = { positive: 'border-safe/30 bg-safe/5', negative: 'border-harmful/30 bg-harmful/5', neutral: 'border-caution/30 bg-caution/5' };
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 pb-8">
