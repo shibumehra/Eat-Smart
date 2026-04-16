@@ -1,81 +1,66 @@
-import { useState } from 'react';
-import { Search, Camera, MapPin, Utensils } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Camera, ImagePlus, Sparkles, Languages, Utensils } from 'lucide-react';
 
 export default function RestaurantMenuPanel() {
-  const [query, setQuery] = useState('');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim()) {
-      // TODO: implement restaurant menu analysis
-    }
-  };
+  const navigate = useNavigate();
 
   return (
     <div className="space-y-5">
-      {/* Search */}
-      <form onSubmit={handleSubmit} className="relative">
-        <div className="glass rounded-2xl p-1 flex items-center gap-1">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search restaurant or menu item..."
-              className="w-full bg-transparent py-3 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={!query.trim()}
-            className="flex h-10 shrink-0 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition-all hover:brightness-110 disabled:opacity-40"
-          >
-            Scan
-          </button>
+      {/* Hero */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+          <Sparkles className="h-3 w-3" /> Menu Intelligence
         </div>
-      </form>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-3">
-        <button className="glass rounded-2xl p-4 flex flex-col items-center gap-2 hover:shadow-md transition-shadow">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-            <Camera className="h-5 w-5 text-primary" />
-          </div>
-          <span className="text-xs font-semibold text-foreground">Scan Menu</span>
-          <span className="text-[10px] text-muted-foreground text-center leading-tight">Take a photo of any restaurant menu</span>
-        </button>
-        <button className="glass rounded-2xl p-4 flex flex-col items-center gap-2 hover:shadow-md transition-shadow">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10">
-            <MapPin className="h-5 w-5 text-accent" />
-          </div>
-          <span className="text-xs font-semibold text-foreground">Nearby</span>
-          <span className="text-[10px] text-muted-foreground text-center leading-tight">Find analyzed restaurants near you</span>
-        </button>
-      </div>
-
-      {/* Popular Restaurants */}
-      <div>
-        <h3 className="text-xs font-semibold text-muted-foreground mb-3">🍽️ Popular Restaurants</h3>
-        <div className="flex gap-2 overflow-x-auto pb-2 flex-wrap">
-          {['McDonald\'s', 'Subway', 'Domino\'s', 'KFC', 'Pizza Hut', 'Starbucks'].map((name) => (
-            <button
-              key={name}
-              className="shrink-0 rounded-full border border-border bg-muted/50 px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition-all hover:border-primary/40 hover:text-primary hover:bg-primary/5 hover:shadow-sm"
-            >
-              {name}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Coming Soon Note */}
-      <div className="glass rounded-2xl p-4 text-center space-y-2">
-        <Utensils className="h-8 w-8 text-primary/40 mx-auto" />
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Restaurant menu analysis is coming soon! You'll be able to scan menus, get health scores for dishes, and find the healthiest options at any restaurant.
+        <h2 className="font-display text-xl font-bold text-foreground">
+          Scan Any <span className="text-gradient">Menu</span>
+        </h2>
+        <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-relaxed">
+          Get nutrition, health scores & mood-based picks for every dish.
         </p>
       </div>
+
+      {/* Camera + Gallery */}
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          onClick={() => navigate('/menu')}
+          className="glass rounded-2xl p-5 flex flex-col items-center gap-2.5 hover:shadow-md transition-all hover:-translate-y-0.5 active:scale-95"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md">
+            <Camera className="h-5 w-5" />
+          </div>
+          <span className="text-xs font-semibold text-foreground">Camera</span>
+          <span className="text-[10px] text-muted-foreground text-center leading-tight">Take a live photo</span>
+        </button>
+        <button
+          onClick={() => navigate('/menu')}
+          className="glass rounded-2xl p-5 flex flex-col items-center gap-2.5 hover:shadow-md transition-all hover:-translate-y-0.5 active:scale-95"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-md">
+            <ImagePlus className="h-5 w-5" />
+          </div>
+          <span className="text-xs font-semibold text-foreground">Gallery</span>
+          <span className="text-[10px] text-muted-foreground text-center leading-tight">Upload from device</span>
+        </button>
+      </div>
+
+      {/* Feature notes */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <div className="glass rounded-xl p-3 flex items-center gap-2">
+          <Languages className="h-4 w-4 text-primary shrink-0" />
+          <span className="text-[11px] text-muted-foreground leading-tight">Hindi, Hinglish & more</span>
+        </div>
+        <div className="glass rounded-xl p-3 flex items-center gap-2">
+          <Utensils className="h-4 w-4 text-accent shrink-0" />
+          <span className="text-[11px] text-muted-foreground leading-tight">Mood-based ranking</span>
+        </div>
+      </div>
+
+      <button
+        onClick={() => navigate('/menu')}
+        className="w-full rounded-2xl bg-primary py-3 text-sm font-semibold text-primary-foreground hover:brightness-110 transition-all shadow-md"
+      >
+        Start Scanning →
+      </button>
     </div>
   );
 }
