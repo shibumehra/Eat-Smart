@@ -18,7 +18,7 @@ export default function DraggablePanels({ topPanel, bottomPanel }: DraggablePane
   const progress = useMotionValue(0);
 
   // Top panel: from 100% - strip height → header bar (~56px)
-  const topPanelHeight = useTransform(progress, [0, 1], ['calc(100vh - 120px - 64px)', '56px']);
+  const topPanelHeight = useTransform(progress, [0, 1], ['calc(100vh - 80px - 56px)', '56px']);
   const topPanelOpacity = useTransform(progress, [0, 0.5, 1], [1, 0.6, 0]);
   const topPanelScale = useTransform(progress, [0, 1], [1, 0.95]);
   const topPanelOverflow = useTransform(progress, (v) => v > 0.3 ? 'hidden' : 'auto');
