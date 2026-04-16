@@ -233,14 +233,14 @@ export default function Index() {
     <div className="min-h-screen bg-background">
       <Navbar region={region} onRegionChange={setRegion} />
 
-      <main className="mx-auto max-w-5xl px-4 pt-20">
+      <main className="mx-auto max-w-5xl px-4 pt-20 pb-8">
         {isMobile ? (
           <DraggablePanels
             topPanel={mainContent}
             bottomPanel={<RestaurantMenuPanel />}
           />
         ) : (
-          <div className="pb-8">
+          <div>
             {mainContent}
           </div>
         )}
