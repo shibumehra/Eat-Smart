@@ -29,7 +29,7 @@ export default function Index() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [notFound, setNotFound] = useState(false);
   const [notFood, setNotFood] = useState<{ productName: string; explanation: string } | null>(null);
-  const { toast } = useToast();
+  const isMobile = useIsMobile();
   const lastProductRef = useRef<string | null>(null);
 
   // Re-analyze when region changes and a report is showing
