@@ -7,7 +7,7 @@ interface DraggablePanelsProps {
   bottomPanel: ReactNode;
 }
 
-const COLLAPSED_HEIGHT = 64; // px for the bottom strip
+const COLLAPSED_HEIGHT = 56; // px for the bottom strip
 const SNAP_THRESHOLD = 0.4;
 
 export default function DraggablePanels({ topPanel, bottomPanel }: DraggablePanelsProps) {
