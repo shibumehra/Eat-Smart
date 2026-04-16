@@ -7,7 +7,7 @@ interface DraggablePanelsProps {
   bottomPanel: ReactNode;
 }
 
-const COLLAPSED_HEIGHT = 64; // px for the bottom strip
+const COLLAPSED_HEIGHT = 56; // px for the bottom strip
 const SNAP_THRESHOLD = 0.4;
 
 export default function DraggablePanels({ topPanel, bottomPanel }: DraggablePanelsProps) {
@@ -18,7 +18,7 @@ export default function DraggablePanels({ topPanel, bottomPanel }: DraggablePane
   const progress = useMotionValue(0);
 
   // Top panel: from 100% - strip height → header bar (~56px)
-  const topPanelHeight = useTransform(progress, [0, 1], ['calc(100vh - 120px - 64px)', '56px']);
+  const topPanelHeight = useTransform(progress, [0, 1], ['calc(100vh - 80px - 56px)', '56px']);
   const topPanelOpacity = useTransform(progress, [0, 0.5, 1], [1, 0.6, 0]);
   const topPanelScale = useTransform(progress, [0, 1], [1, 0.95]);
   const topPanelOverflow = useTransform(progress, (v) => v > 0.3 ? 'hidden' : 'auto');
@@ -77,7 +77,7 @@ export default function DraggablePanels({ topPanel, bottomPanel }: DraggablePane
   const togglePanel = () => snapTo(expanded ? 0 : 1);
 
   return (
-    <div ref={containerRef} className="flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+    <div ref={containerRef} className="flex flex-col h-[calc(100vh-80px)] overflow-hidden relative">
       {/* Top Panel — Product Search */}
       <motion.div
         style={{
@@ -86,17 +86,17 @@ export default function DraggablePanels({ topPanel, bottomPanel }: DraggablePane
           scale: topPanelScale,
           overflow: topPanelOverflow,
         }}
-        className="relative rounded-b-2xl"
+        className="relative rounded-b-2xl shrink-0"
       >
-        <div className="h-full overflow-y-auto pb-2">
+        <div className="h-full overflow-y-auto pb-16">
           {topPanel}
         </div>
       </motion.div>
 
       {/* Drag Handle + Bottom Panel — Restaurant Menu */}
       <motion.div
-        className="flex-1 flex flex-col min-h-[64px] bg-card rounded-t-3xl border-t border-border shadow-[0_-4px_24px_-8px_hsl(var(--foreground)/0.08)] relative z-10"
-        style={{ opacity: bottomPanelOpacity }}
+        className="flex flex-col min-h-[56px] bg-card rounded-t-3xl border-t border-border shadow-[0_-4px_24px_-8px_hsl(var(--foreground)/0.08)] relative z-10"
+        style={{ opacity: bottomPanelOpacity, flex: expanded ? 1 : 0 }}
       >
         {/* Drag Handle */}
         <motion.div
