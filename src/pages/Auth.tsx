@@ -13,6 +13,7 @@ export default function Auth() {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [devPin, setDevPin] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -53,6 +54,17 @@ export default function Auth() {
       redirect_uri: window.location.origin,
     });
     if (error) toast({ title: 'Error', description: error.message, variant: 'destructive' });
+  };
+
+  const handleDevSkip = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (devPin.trim() === '1803') {
+      localStorage.setItem('dev-bypass-auth', 'true');
+      toast({ title: 'Developer mode', description: 'Authentication skipped.' });
+      navigate('/');
+    } else {
+      toast({ title: 'Invalid PIN', description: 'Wrong developer PIN.', variant: 'destructive' });
+    }
   };
 
   return (
@@ -168,6 +180,24 @@ export default function Auth() {
             Continue with Google
           </button>
         </div>
+
+        {/* Developer skip */}
+        <form onSubmit={handleDevSkip} className="mt-4 flex items-center gap-2">
+          <input
+            type="password"
+            inputMode="numeric"
+            placeholder="Developer PIN"
+            value={devPin}
+            onChange={(e) => setDevPin(e.target.value)}
+            className="flex-1 rounded-xl bg-muted py-2.5 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+          <button
+            type="submit"
+            className="rounded-xl border border-border bg-muted px-4 py-2.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Skip Auth
+          </button>
+        </form>
 
       </motion.div>
     </div>
