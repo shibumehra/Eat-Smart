@@ -25,7 +25,6 @@ export default function Index() {
   const [loadingStep, setLoadingStep] = useState(0);
   const [notFound, setNotFound] = useState(false);
   const [notFood, setNotFood] = useState<{ productName: string; explanation: string } | null>(null);
-  const isMobile = useIsMobile();
   const { toast } = useToast();
   const lastProductRef = useRef<string | null>(null);
 
@@ -230,16 +229,7 @@ export default function Index() {
       <Navbar region={region} onRegionChange={setRegion} />
 
       <main className="mx-auto max-w-5xl px-4 pt-20 pb-8">
-        {isMobile ? (
-          <DraggablePanels
-            topPanel={mainContent}
-            bottomPanel={<RestaurantMenuPanel />}
-          />
-        ) : (
-          <div>
-            {mainContent}
-          </div>
-        )}
+        {mainContent}
       </main>
     </div>
   );
