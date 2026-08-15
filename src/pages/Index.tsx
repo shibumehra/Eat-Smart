@@ -9,10 +9,6 @@ import { ProductReport } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Sparkles, Scan, Globe, ArrowLeft } from 'lucide-react';
-import DraggablePanels from '@/components/DraggablePanels';
-import RestaurantMenuPanel from '@/components/RestaurantMenuPanel';
-import { useIsMobile } from '@/hooks/use-mobile';
-
 const TRENDING = ['Maggi Noodles', 'Coca-Cola', 'Amul Butter', 'Lays Classic', 'Bournvita', 'Kurkure', 'Parle-G', 'Red Bull'];
 
 const FEATURES = [
