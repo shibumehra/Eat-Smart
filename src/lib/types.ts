@@ -20,6 +20,8 @@ export interface ProductReport {
   healthVerdict: Record<string, string>;
   publicSentiment: { positive: number; neutral: number; negative: number; totalReviews: number };
   topReviews: Review[];
+  sourceStatus?: 'verified' | 'limited';
+  sourceName?: string;
 }
 
 export interface IngredientTag {

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductReport as ReportType, Alternative } from '@/lib/types';
 import ScoreRing from './ScoreRing';
-import ComparisonModal from './ComparisonModal';
 import { ChevronDown, ChevronUp, Shield, Info, X } from 'lucide-react';
+
+const ComparisonModal = lazy(() => import('./ComparisonModal'));
 
 const verdictColors = { Buy: 'bg-safe/15 text-safe', Avoid: 'bg-harmful/15 text-harmful', 'Try Once': 'bg-caution/15 text-caution' };
 const ingredientColors = { safe: 'bg-safe/10 text-safe border-safe/20', caution: 'bg-caution/10 text-caution border-caution/20', harmful: 'bg-harmful/10 text-harmful border-harmful/20', unknown: 'bg-muted text-muted-foreground border-border' };
@@ -64,6 +65,11 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
               <span className="rounded-full px-2.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground">
                 {report.foodType === 'veg' ? '🟢 Veg' : report.foodType === 'non-veg' ? '🔴 Non-Veg' : '⚪ Unknown'}
               </span>
+              {report.sourceName && (
+                <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${report.sourceStatus === 'verified' ? 'bg-safe/10 text-safe' : 'bg-caution/10 text-caution'}`}>
+                  {report.sourceStatus === 'verified' ? '✓ Verified facts' : 'Limited source data'} · {report.sourceName}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -264,7 +270,9 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
       </div>
 
       {compareAlt && (
-        <ComparisonModal original={report} alternative={compareAlt} onClose={() => setCompareAlt(null)} onAnalyze={onAnalyze} />
+        <Suspense fallback={null}>
+          <ComparisonModal original={report} alternative={compareAlt} onClose={() => setCompareAlt(null)} onAnalyze={onAnalyze} />
+        </Suspense>
       )}
     </motion.div>
   );

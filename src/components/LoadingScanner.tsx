@@ -1,18 +1,19 @@
 import { motion } from 'framer-motion';
 
 const steps = [
-  { label: 'Scanning ingredients', emoji: '🧪' },
-  { label: 'Checking reviews', emoji: '⭐' },
-  { label: 'Verifying certifications', emoji: '🛡️' },
-  { label: 'Building report', emoji: '💬' },
+  { label: 'Finding current product facts', emoji: '🔎' },
+  { label: 'Reviewing sourced ingredients', emoji: '🧪' },
+  { label: 'Scoring for your region', emoji: '🛡️' },
+  { label: 'Writing the final verdict', emoji: '💬' },
 ];
 
 interface LoadingScannerProps {
   currentStep?: number;
   productName?: string;
+  stageLabel?: string;
 }
 
-export default function LoadingScanner({ currentStep = 0, productName }: LoadingScannerProps) {
+export default function LoadingScanner({ currentStep = 0, productName, stageLabel }: LoadingScannerProps) {
   const progress = ((currentStep + 1) / steps.length) * 100;
   const radius = 44;
   const circumference = 2 * Math.PI * radius;
@@ -64,7 +65,7 @@ export default function LoadingScanner({ currentStep = 0, productName }: Loading
             Analyzing {productName}
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Scanning ingredients, reviews, regulations & expert opinions with AI
+            {stageLabel || steps[currentStep]?.label}
           </p>
         </div>
       )}
