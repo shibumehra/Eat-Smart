@@ -126,14 +126,12 @@ Deno.serve(async (req) => {
           .maybeSingle();
         if (cached?.result) {
           emit({ type: "result", data: cached.result, cached: true });
-          controller.close();
           return;
         }
 
         const rate = await consumeRateLimit(identity.identifierHash, "analyze-product", 8, 600);
         if (!rate.allowed) {
           emit({ type: "error", status: 429, message: `Too many new analyses. Try again in ${rate.retryAfterSeconds} seconds.` });
-          controller.close();
           return;
         }
 
@@ -141,7 +139,6 @@ Deno.serve(async (req) => {
         const grounding = await fetchGrounding(productName, region);
         if (!grounding) {
           emit({ type: "result", data: { error: "NOT_FOUND", explanation: "No sufficiently reliable current product evidence was found." } });
-          controller.close();
           return;
         }
 
@@ -155,7 +152,6 @@ Deno.serve(async (req) => {
         });
         if (facts.error === "NOT_FOUND") {
           emit({ type: "result", data: { error: "NOT_FOUND" } });
-          controller.close();
           return;
         }
 
