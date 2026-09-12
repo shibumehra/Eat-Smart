@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { LogoMark } from '@/components/Logo';
+
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -75,10 +77,12 @@ export default function Auth() {
         className="w-full max-w-md"
       >
         {/* Logo */}
-        <div className="mb-8 text-center">
-          <h1 className="font-display text-4xl font-bold text-gradient">EatSmart</h1>
+        <div className="mb-8 flex flex-col items-center text-center">
+          <LogoMark className="h-14 w-14 text-primary" />
+          <h1 className="mt-3 font-display text-3xl font-medium lowercase tracking-tight text-foreground">eatsmart</h1>
           <p className="mt-2 text-muted-foreground text-sm">Know what you eat</p>
         </div>
+
 
         {/* Card */}
         <div className="glass rounded-2xl p-6">
