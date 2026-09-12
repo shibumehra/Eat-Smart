@@ -1,15 +1,23 @@
-import { useState, useEffect, useRef } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '@/components/Navbar';
 import SearchBar from '@/components/SearchBar';
 import LoadingScanner from '@/components/LoadingScanner';
-import ProductReportView from '@/components/ProductReport';
 import { detectRegion, RegionCode } from '@/lib/regions';
 import { ProductReport } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Sparkles, Scan, Globe, ArrowLeft } from 'lucide-react';
 const TRENDING = ['Maggi Noodles', 'Coca-Cola', 'Amul Butter', 'Lays Classic', 'Bournvita', 'Kurkure', 'Parle-G', 'Red Bull'];
+const ProductReportView = lazy(() => import('@/components/ProductReport'));
+
+interface AnalysisEvent {
+  type: 'stage' | 'result' | 'error';
+  step?: number;
+  label?: string;
+  data?: ProductReport | { error: string; productName?: string; explanation?: string };
+  message?: string;
+}
 
 const FEATURES = [
   { icon: Scan, title: 'AI-Powered Analysis', desc: 'Deep ingredient scanning powered by advanced AI models and real web data.' },
@@ -23,10 +31,53 @@ export default function Index() {
   const [report, setReport] = useState<ProductReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [stageLabel, setStageLabel] = useState('Finding current product facts');
   const [notFound, setNotFound] = useState(false);
   const [notFood, setNotFood] = useState<{ productName: string; explanation: string } | null>(null);
   const { toast } = useToast();
   const lastProductRef = useRef<string | null>(null);
+
+  const analyzeWithProgress = async (name: string): Promise<ProductReport | { error: string; productName?: string; explanation?: string }> => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Please sign in with your account to run a protected analysis.');
+    const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-product`;
+    const response = await fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ productName: name, region }),
+    });
+    if (!response.ok || !response.body) throw new Error('The analysis service could not start.');
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let finalData: AnalysisEvent['data'];
+    while (true) {
+      const { value, done } = await reader.read();
+      buffer += decoder.decode(value, { stream: !done });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const event = JSON.parse(line) as AnalysisEvent;
+        if (event.type === 'stage') {
+          setLoadingStep(Math.min(Math.max(event.step ?? 0, 0), 3));
+          if (event.label) setStageLabel(event.label);
+        } else if (event.type === 'error') {
+          throw new Error(event.message || 'Analysis failed.');
+        } else if (event.type === 'result') {
+          finalData = event.data;
+        }
+      }
+      if (done) break;
+    }
+    if (!finalData) throw new Error('The analysis finished without a report.');
+    return finalData;
+  };
 
   // Re-analyze when region changes and a report is showing
   useEffect(() => {
@@ -43,19 +94,13 @@ export default function Index() {
     setNotFood(null);
     setLoading(true);
     setLoadingStep(0);
-
-    const stepInterval = setInterval(() => {
-      setLoadingStep(prev => Math.min(prev + 1, 3));
-    }, 3000);
+    setStageLabel('Finding current product facts');
 
     try {
-      const { data, error } = await supabase.functions.invoke('analyze-product', {
-        body: { productName: name, region },
-      });
-      if (error) throw error;
-      if (data?.error === 'NOT_FOUND') {
+      const data = await analyzeWithProgress(name);
+      if ('error' in data && data.error === 'NOT_FOUND') {
         setNotFound(true);
-      } else if (data?.error === 'NOT_FOOD') {
+      } else if ('error' in data && data.error === 'NOT_FOOD') {
         setNotFood({ productName: data.productName || name, explanation: data.explanation || '' });
       } else {
         setReport(data as ProductReport);
@@ -63,7 +108,6 @@ export default function Index() {
     } catch (err: any) {
       toast({ title: 'Analysis failed', description: err.message || 'Please try again.', variant: 'destructive' });
     } finally {
-      clearInterval(stepInterval);
       setLoading(false);
     }
   };
@@ -74,10 +118,7 @@ export default function Index() {
     setNotFood(null);
     setLoading(true);
     setLoadingStep(0);
-
-    const stepInterval = setInterval(() => {
-      setLoadingStep(prev => Math.min(prev + 1, 3));
-    }, 3000);
+    setStageLabel('Reading the product package');
 
     try {
       const { data: idData, error: idError } = await supabase.functions.invoke('identify-product-image', {
@@ -89,21 +130,16 @@ export default function Index() {
         return;
       }
       toast({ title: 'Product identified', description: idData.productName });
-      
-      const { data, error } = await supabase.functions.invoke('analyze-product', {
-        body: { productName: idData.productName, region },
-      });
-      if (error) throw error;
-      if (data?.error === 'NOT_FOUND') {
+      lastProductRef.current = idData.productName;
+      const data = await analyzeWithProgress(idData.productName);
+      if ('error' in data && data.error === 'NOT_FOUND') {
         setNotFound(true);
       } else {
-        lastProductRef.current = idData.productName;
         setReport(data as ProductReport);
       }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message || 'Please try again.', variant: 'destructive' });
     } finally {
-      clearInterval(stepInterval);
       setLoading(false);
     }
   };
@@ -180,7 +216,7 @@ export default function Index() {
         </motion.div>
       )}
 
-      {loading && <LoadingScanner currentStep={loadingStep} productName={lastProductRef.current || undefined} />}
+      {loading && <LoadingScanner currentStep={loadingStep} stageLabel={stageLabel} productName={lastProductRef.current || undefined} />}
 
       {notFound && !loading && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 space-y-4">
@@ -218,7 +254,9 @@ export default function Index() {
           <div className="mb-4">
             <SearchBar onSearch={analyzeProduct} onImageCapture={handleImageCapture} loading={loading} />
           </div>
-          <ProductReportView report={report} onAnalyze={analyzeProduct} region={region} />
+          <Suspense fallback={<LoadingScanner currentStep={3} productName={report.productName} stageLabel="Opening your report" />}>
+            <ProductReportView report={report} onAnalyze={analyzeProduct} region={region} />
+          </Suspense>
         </div>
       )}
     </>

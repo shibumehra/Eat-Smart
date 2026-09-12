@@ -8,9 +8,40 @@ interface SearchBarProps {
   loading?: boolean;
 }
 
+const MAX_IMAGE_DIMENSION = 1280;
+
+function renderCompressedImage(source: CanvasImageSource, width: number, height: number): string {
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(width, height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(width * scale));
+  canvas.height = Math.max(1, Math.round(height * scale));
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('Image processing is not available.');
+  context.drawImage(source, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.78);
+}
+
+async function compressImage(file: File): Promise<string> {
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+    throw new Error('Choose a JPEG, PNG, or WebP image.');
+  }
+  if (file.size > 20 * 1024 * 1024) throw new Error('Choose an image smaller than 20 MB.');
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = new Image();
+    image.src = objectUrl;
+    await image.decode();
+    return renderCompressedImage(image, image.naturalWidth, image.naturalHeight);
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
 export default function SearchBar({ onSearch, onImageCapture, loading }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [showCamera, setShowCamera] = useState(false);
+  const [imageError, setImageError] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -21,6 +52,7 @@ export default function SearchBar({ onSearch, onImageCapture, loading }: SearchB
   };
 
   const openCamera = async () => {
+    setImageError('');
     setShowCamera(true);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
@@ -33,11 +65,7 @@ export default function SearchBar({ onSearch, onImageCapture, loading }: SearchB
 
   const capturePhoto = () => {
     if (!videoRef.current) return;
-    const canvas = document.createElement('canvas');
-    canvas.width = videoRef.current.videoWidth;
-    canvas.height = videoRef.current.videoHeight;
-    canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
-    const base64 = canvas.toDataURL('image/jpeg', 0.8);
+    const base64 = renderCompressedImage(videoRef.current, videoRef.current.videoWidth, videoRef.current.videoHeight);
     closeCamera();
     onImageCapture(base64);
   };
@@ -48,17 +76,19 @@ export default function SearchBar({ onSearch, onImageCapture, loading }: SearchB
     setShowCamera(false);
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        closeCamera();
-        onImageCapture(reader.result);
-      }
-    };
-    reader.readAsDataURL(file);
+    setImageError('');
+    try {
+      const image = await compressImage(file);
+      closeCamera();
+      onImageCapture(image);
+    } catch (error) {
+      setImageError(error instanceof Error ? error.message : 'Could not prepare this image.');
+    } finally {
+      e.target.value = '';
+    }
   };
 
   return (
@@ -135,6 +165,7 @@ export default function SearchBar({ onSearch, onImageCapture, loading }: SearchB
                   📸 Capture
                 </button>
               </div>
+              {imageError && <p className="mt-3 text-center text-xs text-destructive">{imageError}</p>}
               <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
             </div>
           </motion.div>

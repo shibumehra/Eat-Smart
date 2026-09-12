@@ -14,27 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      analysis_rate_limits: {
+        Row: {
+          endpoint: string
+          identifier_hash: string
+          request_count: number
+          updated_at: string
+          window_started_at: string
+        }
+        Insert: {
+          endpoint: string
+          identifier_hash: string
+          request_count?: number
+          updated_at?: string
+          window_started_at: string
+        }
+        Update: {
+          endpoint?: string
+          identifier_hash?: string
+          request_count?: number
+          updated_at?: string
+          window_started_at?: string
+        }
+        Relationships: []
+      }
       product_cache: {
         Row: {
           created_at: string
+          data_source: string
+          expires_at: string
           id: string
           product_key: string
           region: string
           result: Json
+          source_updated_at: string | null
+          updated_at: string
         }
         Insert: {
           created_at?: string
+          data_source?: string
+          expires_at?: string
           id?: string
           product_key: string
           region: string
           result: Json
+          source_updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           created_at?: string
+          data_source?: string
+          expires_at?: string
           id?: string
           product_key?: string
           region?: string
           result?: Json
+          source_updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -76,7 +112,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      consume_analysis_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_identifier_hash: string
+          p_limit: number
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          retry_after_seconds: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
