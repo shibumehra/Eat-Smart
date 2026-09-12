@@ -11,11 +11,10 @@ interface ScoreRingProps {
 
 function getScoreColor(score: number, max: number) {
   const pct = score / max;
-  if (pct >= 0.7) return 'hsl(99 20% 38%)';
-  if (pct >= 0.4) return 'hsl(38 55% 47%)';
-  return 'hsl(8 45% 45%)';
+  if (pct >= 0.7) return 'hsl(152 60% 42%)';
+  if (pct >= 0.4) return 'hsl(38 92% 50%)';
+  return 'hsl(0 72% 51%)';
 }
-
 
 export default function ScoreRing({ score, maxScore, size = 100, strokeWidth = 6, label }: ScoreRingProps) {
   const [mounted, setMounted] = useState(false);
@@ -33,7 +32,7 @@ export default function ScoreRing({ score, maxScore, size = 100, strokeWidth = 6
     <div className="flex flex-col items-center gap-1">
       <div className="relative" style={{ width: size, height: size }}>
         <svg width={size} height={size} className="-rotate-90">
-          <circle cx={size / 2} cy={size / 2} r={radius} stroke="hsl(45 10% 85%)" strokeWidth={strokeWidth} fill="none" />
+          <circle cx={size / 2} cy={size / 2} r={radius} stroke="hsl(220 10% 90%)" strokeWidth={strokeWidth} fill="none" />
           <circle
             cx={size / 2}
             cy={size / 2}

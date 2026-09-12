@@ -3,8 +3,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { REGIONS, RegionCode } from '@/lib/regions';
 import { ChevronDown, LogOut, User, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import Logo from '@/components/Logo';
-
 
 interface NavbarProps {
   region: RegionCode;
@@ -22,10 +20,9 @@ export default function Navbar({ region, onRegionChange }: NavbarProps) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <button onClick={() => navigate('/')} aria-label="EatSmart home">
-          <Logo />
+        <button onClick={() => navigate('/')} className="font-display text-xl font-bold text-gradient">
+          EatSmart
         </button>
-
 
         <div className="flex items-center gap-2">
           {/* Region Selector */}
