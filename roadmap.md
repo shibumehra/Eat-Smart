@@ -7,4 +7,5 @@
 - [x] Lazy-load reports and compress uploads
 - [x] Deploy backend functions and run focused tests
 - [x] Verify desktop and mobile layout
-- [ ] Run one signed-in end-to-end AI analysis (blocked: no matching app account in this preview session)
+- [x] Run one signed-in end-to-end AI analysis (verified on mobile viewport)
+- [x] Send unsigned users to the sign-in screen instead of an error toast
