@@ -147,7 +147,9 @@ export default function Index() {
         setReport(data as ProductReport);
       }
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message || 'Please try again.', variant: 'destructive' });
+      if (err?.message !== 'SIGN_IN_REQUIRED') {
+        toast({ title: 'Error', description: err.message || 'Please try again.', variant: 'destructive' });
+      }
     } finally {
       setLoading(false);
     }
