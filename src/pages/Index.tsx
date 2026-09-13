@@ -6,6 +6,7 @@ import LoadingScanner from '@/components/LoadingScanner';
 import { detectRegion, RegionCode } from '@/lib/regions';
 import { ProductReport } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Sparkles, Scan, Globe, ArrowLeft } from 'lucide-react';
 const TRENDING = ['Maggi Noodles', 'Coca-Cola', 'Amul Butter', 'Lays Classic', 'Bournvita', 'Kurkure', 'Parle-G', 'Red Bull'];
@@ -35,11 +36,17 @@ export default function Index() {
   const [notFound, setNotFound] = useState(false);
   const [notFood, setNotFood] = useState<{ productName: string; explanation: string } | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const lastProductRef = useRef<string | null>(null);
 
   const analyzeWithProgress = async (name: string): Promise<ProductReport | { error: string; productName?: string; explanation?: string }> => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('Please sign in with your account to run a protected analysis.');
+    if (!session) {
+      localStorage.removeItem('dev-bypass-auth');
+      toast({ title: 'Sign in required', description: 'Create an account or sign in to scan products.' });
+      navigate('/auth');
+      throw new Error('SIGN_IN_REQUIRED');
+    }
     const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-product`;
     const response = await fetch(functionUrl, {
       method: 'POST',
@@ -106,7 +113,9 @@ export default function Index() {
         setReport(data as ProductReport);
       }
     } catch (err: any) {
-      toast({ title: 'Analysis failed', description: err.message || 'Please try again.', variant: 'destructive' });
+      if (err?.message !== 'SIGN_IN_REQUIRED') {
+        toast({ title: 'Analysis failed', description: err.message || 'Please try again.', variant: 'destructive' });
+      }
     } finally {
       setLoading(false);
     }
@@ -138,7 +147,9 @@ export default function Index() {
         setReport(data as ProductReport);
       }
     } catch (err: any) {
-      toast({ title: 'Error', description: err.message || 'Please try again.', variant: 'destructive' });
+      if (err?.message !== 'SIGN_IN_REQUIRED') {
+        toast({ title: 'Error', description: err.message || 'Please try again.', variant: 'destructive' });
+      }
     } finally {
       setLoading(false);
     }
