@@ -34,13 +34,18 @@ export default function Auth() {
         if (error) throw error;
         navigate('/');
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast({ title: 'Check your email', description: 'We sent you a confirmation link.' });
+        if (data.session) {
+          toast({ title: 'Welcome!', description: 'Your account is ready.' });
+          navigate('/');
+        } else {
+          toast({ title: 'Check your email', description: 'We sent you a confirmation link.' });
+        }
       }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
