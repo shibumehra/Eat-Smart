@@ -36,6 +36,7 @@ export default function Index() {
   const [notFound, setNotFound] = useState(false);
   const [notFood, setNotFood] = useState<{ productName: string; explanation: string } | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
   const lastProductRef = useRef<string | null>(null);
 
   const analyzeWithProgress = async (name: string): Promise<ProductReport | { error: string; productName?: string; explanation?: string }> => {
@@ -112,7 +113,9 @@ export default function Index() {
         setReport(data as ProductReport);
       }
     } catch (err: any) {
-      toast({ title: 'Analysis failed', description: err.message || 'Please try again.', variant: 'destructive' });
+      if (err?.message !== 'SIGN_IN_REQUIRED') {
+        toast({ title: 'Analysis failed', description: err.message || 'Please try again.', variant: 'destructive' });
+      }
     } finally {
       setLoading(false);
     }
