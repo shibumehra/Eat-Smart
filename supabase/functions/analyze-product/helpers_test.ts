@@ -1,7 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { parseJsonObject } from "../_shared/json.ts";
 import { normalizeProductKey, tokenSimilarity } from "../_shared/normalize.ts";
-import { calculateIngredientPurity, normalizeRegulatoryStatus } from "./index.ts";
+import { calculateIngredientPurity, normalizeRegulatoryStatus } from "./scoring.ts";
 
 Deno.test("normalizes product names for cache reuse", () => {
   assertEquals(normalizeProductKey("  MAGGI® 2-Minute Noodles  "), "maggi 2 minute noodles");

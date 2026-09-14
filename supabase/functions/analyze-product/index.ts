@@ -4,6 +4,7 @@ import { fetchGrounding } from "../_shared/sources.ts";
 import { normalizeProductKey } from "../_shared/normalize.ts";
 import { GatewayError, requestJson } from "../_shared/gateway.ts";
 import { consumeRateLimit, requireIdentity } from "../_shared/security.ts";
+import { calculateIngredientPurity, IngredientStatus, normalizeRegulatoryStatus } from "./scoring.ts";
 
 const REGION_MAP: Record<string, string> = {
   IN: "FSSAI (Food Safety and Standards Authority of India)",
@@ -29,21 +30,6 @@ function numberValue(value: unknown, min: number, max: number, fallback = 0): nu
 
 function stringArray(value: unknown, limit = 8): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, limit) : [];
-}
-
-type IngredientStatus = "safe" | "caution" | "harmful" | "unknown";
-
-export function calculateIngredientPurity(ingredients: Array<{ status: IngredientStatus }>): number {
-  if (ingredients.length === 0) return 0;
-  const weights: Record<IngredientStatus, number> = { safe: 100, caution: 55, harmful: 0, unknown: 25 };
-  const total = ingredients.reduce((sum, ingredient) => sum + weights[ingredient.status], 0);
-  return Math.round(total / ingredients.length);
-}
-
-export function normalizeRegulatoryStatus(value: unknown): "Certified" | "Compliant" | "Not Verified" | "Non-Compliant" {
-  return ["Certified", "Compliant", "Not Verified", "Non-Compliant"].includes(String(value))
-    ? String(value) as "Certified" | "Compliant" | "Not Verified" | "Non-Compliant"
-    : "Not Verified";
 }
 
 function buildReport(

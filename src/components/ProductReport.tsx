@@ -101,7 +101,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="fixed inset-x-4 top-1/2 z-[70] max-h-[70vh] -translate-y-1/2 overflow-y-auto rounded-lg border border-border bg-card p-4 text-left text-xs text-muted-foreground shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-72 sm:max-h-none sm:translate-y-0"
+                className="fixed right-4 top-1/2 z-[70] max-h-[70vh] w-[min(18rem,calc(100vw-2rem))] -translate-y-1/2 overflow-y-auto rounded-lg border border-border bg-card p-4 text-left text-xs text-muted-foreground shadow-lg sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:max-h-none sm:translate-y-0"
               >
                 <div className="flex items-center justify-between mb-1">
                   <p className="font-medium text-foreground">Regulatory Info ({currentAuthority})</p>
