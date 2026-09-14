@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { REGIONS, RegionCode } from '@/lib/regions';
 import { ChevronDown, LogOut, User, Globe } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import iconAsset from '@/assets/eatsmart-icon.jpg.asset.json';
 
 interface NavbarProps {
   region: RegionCode;
@@ -20,8 +21,9 @@ export default function Navbar({ region, onRegionChange }: NavbarProps) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <button onClick={() => navigate('/')} className="font-display text-xl font-bold text-gradient">
-          EatSmart
+        <button onClick={() => navigate('/')} className="flex min-w-0 items-center gap-2" aria-label="EatSmart home">
+          <img src={iconAsset.url} alt="" className="h-9 w-9 rounded-lg object-cover" />
+          <span className="font-display text-xl font-bold text-gradient">EatSmart</span>
         </button>
 
         <div className="flex items-center gap-2">

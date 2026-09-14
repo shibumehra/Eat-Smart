@@ -27,7 +27,7 @@ export async function fetchGrounding(productName: string, region: string): Promi
     action: "process",
     json: "1",
     page_size: "10",
-    fields: "code,product_name,product_name_en,brands,ingredients_text,ingredients_text_en,nutriments,nutrition_grades,labels,categories,countries,countries_tags,last_modified_t",
+    fields: "code,product_name,product_name_en,brands,ingredients_text,ingredients_text_en,nutriments,nutrition_grades,labels,labels_tags,categories,countries,countries_tags,manufacturing_places,origins,stores,last_modified_t",
   });
 
   try {
@@ -63,8 +63,12 @@ export async function fetchGrounding(productName: string, region: string): Promi
             nutriments: product.nutriments ?? {},
             nutritionGrade: product.nutrition_grades ?? null,
             labels: product.labels ?? null,
+            labelTags: product.labels_tags ?? [],
             categories: product.categories ?? null,
             countries: product.countries ?? null,
+            manufacturingPlaces: product.manufacturing_places ?? null,
+            origins: product.origins ?? null,
+            stores: product.stores ?? null,
             lastModified: product.last_modified_t ?? null,
           },
         };

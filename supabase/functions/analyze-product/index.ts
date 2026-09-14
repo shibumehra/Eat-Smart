@@ -16,6 +16,7 @@ const REGION_MAP: Record<string, string> = {
 
 const encoder = new TextEncoder();
 const jsonLine = (value: unknown) => encoder.encode(`${JSON.stringify(value)}\n`);
+const REPORT_VERSION = 2;
 
 function stringValue(value: unknown, fallback = "Unknown"): string {
   return typeof value === "string" && value.trim() ? value.trim() : fallback;
@@ -30,6 +31,21 @@ function stringArray(value: unknown, limit = 8): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).slice(0, limit) : [];
 }
 
+type IngredientStatus = "safe" | "caution" | "harmful" | "unknown";
+
+export function calculateIngredientPurity(ingredients: Array<{ status: IngredientStatus }>): number {
+  if (ingredients.length === 0) return 0;
+  const weights: Record<IngredientStatus, number> = { safe: 100, caution: 55, harmful: 0, unknown: 25 };
+  const total = ingredients.reduce((sum, ingredient) => sum + weights[ingredient.status], 0);
+  return Math.round(total / ingredients.length);
+}
+
+export function normalizeRegulatoryStatus(value: unknown): "Certified" | "Compliant" | "Not Verified" | "Non-Compliant" {
+  return ["Certified", "Compliant", "Not Verified", "Non-Compliant"].includes(String(value))
+    ? String(value) as "Certified" | "Compliant" | "Not Verified" | "Non-Compliant"
+    : "Not Verified";
+}
+
 function buildReport(
   facts: Record<string, unknown>,
   scoring: Record<string, unknown>,
@@ -38,33 +54,35 @@ function buildReport(
 ) {
   const allowedFoodTypes = ["veg", "non-veg", "unknown"];
   const allowedVerdicts = ["Buy", "Avoid", "Try Once"];
-  const allowedRegulatory = ["Certified", "Not Certified", "Unknown"];
   const rawIngredients = Array.isArray(facts.ingredients) ? facts.ingredients : [];
   const rawAlternatives = Array.isArray(scoring.healthierAlternatives) ? scoring.healthierAlternatives : [];
   const rawHealth = scoring.healthVerdict && typeof scoring.healthVerdict === "object" ? scoring.healthVerdict as Record<string, unknown> : {};
 
+  const ingredients = rawIngredients.slice(0, 40).map((item) => {
+    const ingredient = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    const status = ["safe", "caution", "harmful", "unknown"].includes(String(ingredient.status)) ? ingredient.status as IngredientStatus : "unknown";
+    return { name: stringValue(ingredient.name), status, detail: stringValue(ingredient.detail, "No reliable detail available.") };
+  });
+
   return {
+    analysisVersion: REPORT_VERSION,
     productName: stringValue(facts.productName),
     brand: stringValue(facts.brand),
     category: stringValue(facts.category),
     foodType: allowedFoodTypes.includes(String(facts.foodType)) ? facts.foodType : "unknown",
     overallScore: numberValue(scoring.overallScore, 0, 10),
     verdict: allowedVerdicts.includes(String(scoring.verdict)) ? scoring.verdict : "Try Once",
-    ingredientPurityScore: numberValue(scoring.ingredientPurityScore, 0, 100),
+    ingredientPurityScore: calculateIngredientPurity(ingredients),
     reviewAuthenticity: 0,
-    regulatoryStatus: allowedRegulatory.includes(String(scoring.regulatoryStatus)) ? scoring.regulatoryStatus : "Unknown",
-    regulatoryReasoning: stringValue(scoring.regulatoryReasoning, "No verified regional certification evidence was found."),
+    regulatoryStatus: normalizeRegulatoryStatus(scoring.regulatoryStatus),
+    regulatoryReasoning: stringValue(scoring.regulatoryReasoning, "No explicit regional registration, compliance, or certification evidence was found in the current sources."),
     crossRegionCertifications: scoring.crossRegionCertifications && typeof scoring.crossRegionCertifications === "object" ? scoring.crossRegionCertifications : {},
     valueForMoney: numberValue(scoring.valueForMoney, 0, 10, 5),
     about: stringValue(facts.about),
     foodScoutVerdict: stringValue(voice.foodScoutVerdict, "Worth a label check before it earns a place in your cart."),
     pros: stringArray(scoring.pros, 4),
     cons: stringArray(scoring.cons, 4),
-    ingredients: rawIngredients.slice(0, 40).map((item) => {
-      const ingredient = item && typeof item === "object" ? item as Record<string, unknown> : {};
-      const status = ["safe", "caution", "harmful", "unknown"].includes(String(ingredient.status)) ? ingredient.status : "unknown";
-      return { name: stringValue(ingredient.name), status, detail: stringValue(ingredient.detail, "No reliable detail available.") };
-    }),
+    ingredients,
     healthierAlternatives: rawAlternatives.slice(0, 4).map((item) => {
       const alternative = item && typeof item === "object" ? item as Record<string, unknown> : {};
       return {
@@ -74,7 +92,7 @@ function buildReport(
         ingredientPurityScore: numberValue(alternative.ingredientPurityScore, 0, 100),
         verdict: allowedVerdicts.includes(String(alternative.verdict)) ? alternative.verdict : "Try Once",
         valueForMoney: numberValue(alternative.valueForMoney, 0, 10, 5),
-        regulatoryStatus: allowedRegulatory.includes(String(alternative.regulatoryStatus)) ? alternative.regulatoryStatus : "Unknown",
+        regulatoryStatus: normalizeRegulatoryStatus(alternative.regulatoryStatus),
         reviewAuthenticity: 0,
         reason: stringValue(alternative.reason, "A packaged option with a stronger ingredient profile."),
       };
@@ -124,7 +142,7 @@ Deno.serve(async (req) => {
           .eq("region", region)
           .gt("expires_at", new Date().toISOString())
           .maybeSingle();
-        if (cached?.result) {
+        if (cached?.result && Number((cached.result as Record<string, unknown>).analysisVersion) === REPORT_VERSION) {
           emit({ type: "result", data: cached.result, cached: true });
           return;
         }
@@ -147,7 +165,7 @@ Deno.serve(async (req) => {
         emit({ type: "stage", step: 1, label: `Reviewing ${grounding.source} ingredients` });
         const facts = await requestJson({
           repairLabel: "facts and ingredients",
-          system: `You are a strict food data extractor. Use ONLY the supplied source evidence. Never recall or invent ingredients, nutrition, certifications, or claims. Missing facts must be Unknown. Classify ingredient concern conservatively and explain uncertainty. Return JSON with productName, brand, category, foodType (veg|non-veg|unknown), about, ingredients [{name,status:safe|caution|harmful|unknown,detail}]. If evidence is for a different product, return {"error":"NOT_FOUND"}.`,
+          system: `You are a strict food data extractor. Use ONLY the supplied source evidence. Never recall or invent ingredients, nutrition, certifications, or claims. Missing facts must be Unknown. Split the supplied ingredient list into its actual named ingredients and additives. Classify safe only when ordinary use is supported by the evidence; caution for high sugar/sodium, caffeine, allergens, or additives that warrant moderation; harmful only when the sourced evidence identifies the ingredient as prohibited or unsafe at the stated use; unknown when evidence is insufficient. Never call a legally permitted additive harmful merely because it has an E-number. Return JSON with productName, brand, category, foodType (veg|non-veg|unknown), about, ingredients [{name,status:safe|caution|harmful|unknown,detail}]. If evidence is for a different product, return {"error":"NOT_FOUND"}.`,
           user: `Requested product: ${productName}\nRegion: ${region}\nSource: ${grounding.source}\nMatch: ${grounding.matchedProduct}\nEvidence JSON: ${evidence}`,
         });
         if (facts.error === "NOT_FOUND") {
@@ -158,7 +176,7 @@ Deno.serve(async (req) => {
         emit({ type: "stage", step: 2, label: "Scoring sourced facts for your region" });
         const scoring = await requestJson({
           repairLabel: "health scoring",
-          system: `You are a conservative food scoring analyst. Score ONLY from the supplied extracted facts and source evidence. Do not claim certification unless explicit evidence proves it. The user's authority is ${authority}. Alternatives must be real commercial packaged products, never recipes, and uncertain fields must be Unknown. Return JSON with overallScore 0-10, verdict Buy|Avoid|Try Once, ingredientPurityScore 0-100, regulatoryStatus Certified|Not Certified|Unknown, regulatoryReasoning, crossRegionCertifications containing only the current authority, valueForMoney 0-10, pros, cons, healthierAlternatives [{name,brand,score,ingredientPurityScore,verdict,valueForMoney,regulatoryStatus,reason}], healthVerdict {diabetics,children,pregnant,fitness,general}.`,
+          system: `You are a conservative food scoring analyst. Score ONLY from the supplied extracted facts and source evidence. The user's authority is ${authority}. Regulatory status meanings are strict: Certified only when an explicit product certification mark or licence is present in evidence; Compliant only when evidence explicitly confirms current compliance or lawful registration with the named authority; Non-Compliant only when reliable evidence explicitly records a violation; otherwise Not Verified. Market availability, brand reputation, permitted ingredients, or absence of violations are not proof of compliance. Explain exactly what evidence supports the status. The server computes the final ingredient purity score from ingredient classifications, so do not infer hidden quantities. Alternatives must be real commercial packaged products, never recipes. Return JSON with overallScore 0-10, verdict Buy|Avoid|Try Once, regulatoryStatus Certified|Compliant|Not Verified|Non-Compliant, regulatoryReasoning, crossRegionCertifications containing only the current authority, valueForMoney 0-10, pros, cons, healthierAlternatives [{name,brand,score,ingredientPurityScore,verdict,valueForMoney,regulatoryStatus,reason}], healthVerdict {diabetics,children,pregnant,fitness,general}.`,
           user: `Region: ${region}\nAuthority: ${authority}\nGrounding status: ${grounding.status}\nExtracted facts JSON: ${JSON.stringify(facts)}\nSource evidence JSON: ${evidence}`,
         });
 

@@ -44,7 +44,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
   const [expandedPros, setExpandedPros] = useState(false);
   const [showRegTooltip, setShowRegTooltip] = useState(false);
 
-  const regIcon = report.regulatoryStatus === 'Certified' ? '✅' : report.regulatoryStatus === 'Not Certified' ? '❌' : '⚠️';
+  const regIcon = report.regulatoryStatus === 'Certified' || report.regulatoryStatus === 'Compliant' ? '✅' : report.regulatoryStatus === 'Non-Compliant' || report.regulatoryStatus === 'Not Certified' ? '❌' : '⚠️';
   const regionAuthority: Record<string, string> = { IN: 'FSSAI', US: 'FDA', UK: 'FSA', EU: 'EFSA', AU: 'FSANZ', CA: 'CFIA' };
   const currentAuthority = regionAuthority[region || 'IN'] || 'FSSAI';
 
@@ -86,13 +86,13 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
           <p className="mt-1 text-[10px] text-muted-foreground">Review Auth.</p>
         </div>
         {/* Regulatory */}
-        <div className="glass rounded-xl p-3 relative">
+        <div className="glass rounded-xl p-3 relative min-w-0">
           <div className="flex flex-col items-center">
             <span className="text-2xl">{regIcon}</span>
-            <p className="mt-1 text-xs font-medium text-foreground">{report.regulatoryStatus}</p>
+            <p className="mt-1 max-w-full break-words text-center text-xs font-medium leading-tight text-foreground">{report.regulatoryStatus}</p>
             <p className="text-[10px] text-muted-foreground">{currentAuthority}</p>
           </div>
-          <button onClick={() => setShowRegTooltip(!showRegTooltip)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground z-10">
+          <button onClick={() => setShowRegTooltip(!showRegTooltip)} className="absolute right-2 top-2 z-10 text-muted-foreground hover:text-foreground" aria-label="Show regulatory details">
             <Info className="h-3 w-3" />
           </button>
           <AnimatePresence>
@@ -101,7 +101,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute right-0 z-50 mt-2 w-64 bg-card rounded-lg p-3 text-[10px] text-muted-foreground shadow-lg border border-border"
+                className="fixed inset-x-4 top-1/2 z-[70] max-h-[70vh] -translate-y-1/2 overflow-y-auto rounded-lg border border-border bg-card p-4 text-left text-xs text-muted-foreground shadow-lg sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-72 sm:max-h-none sm:translate-y-0"
               >
                 <div className="flex items-center justify-between mb-1">
                   <p className="font-medium text-foreground">Regulatory Info ({currentAuthority})</p>
@@ -109,7 +109,7 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
                     <X className="h-3 w-3" />
                   </button>
                 </div>
-                <p>{report.regulatoryReasoning}</p>
+                <p className="break-words leading-relaxed">{report.regulatoryReasoning}</p>
               </motion.div>
             )}
           </AnimatePresence>
