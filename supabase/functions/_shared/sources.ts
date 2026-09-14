@@ -14,6 +14,29 @@ interface SourcePacket {
   evidence: Record<string, unknown>;
 }
 
+async function fetchTrustedSearch(query: string, limit = 5): Promise<Array<{ title: string; excerpt: string }>> {
+  const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
+  if (!firecrawlKey) return [];
+  try {
+    const response = await fetch("https://api.firecrawl.dev/v1/search", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${firecrawlKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ query, limit, scrapeOptions: { formats: ["markdown"] } }),
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return (Array.isArray(data.data) ? data.data : [])
+      .map((item: Record<string, unknown>) => ({
+        title: String(item.title ?? "").slice(0, 180),
+        excerpt: String(item.markdown ?? item.description ?? "").replace(/\s+/g, " ").slice(0, 1200),
+      }))
+      .filter((item: { excerpt: string }) => item.excerpt.length > 80);
+  } catch (error) {
+    console.warn("Trusted search failed", error);
+    return [];
+  }
+}
+
 function productTitle(product: Record<string, unknown>): string {
   const brand = String(product.brands ?? "").split(",")[0]?.trim();
   const name = String(product.product_name_en ?? product.product_name ?? "").trim();
@@ -27,7 +50,7 @@ export async function fetchGrounding(productName: string, region: string): Promi
     action: "process",
     json: "1",
     page_size: "10",
-    fields: "code,product_name,product_name_en,brands,ingredients_text,ingredients_text_en,nutriments,nutrition_grades,labels,categories,countries,countries_tags,last_modified_t",
+    fields: "code,product_name,product_name_en,brands,ingredients_text,ingredients_text_en,nutriments,nutrition_grades,labels,labels_tags,categories,countries,countries_tags,manufacturing_places,origins,stores,last_modified_t",
   });
 
   try {
@@ -51,6 +74,8 @@ export async function fetchGrounding(productName: string, region: string): Promi
       const best = ranked[0];
       if (best && best.score >= 0.55 && best.title) {
         const product = best.product;
+        const authority = region === "IN" ? "FSSAI India" : region === "US" ? "FDA United States" : region === "UK" ? "FSA UK" : region;
+        const regulatoryEvidence = await fetchTrustedSearch(`\"${best.title}\" ${authority} licence registration certification compliance`, 4);
         return {
           status: "verified",
           source: "Open Food Facts",
@@ -63,8 +88,13 @@ export async function fetchGrounding(productName: string, region: string): Promi
             nutriments: product.nutriments ?? {},
             nutritionGrade: product.nutrition_grades ?? null,
             labels: product.labels ?? null,
+            labelTags: product.labels_tags ?? [],
             categories: product.categories ?? null,
             countries: product.countries ?? null,
+            manufacturingPlaces: product.manufacturing_places ?? null,
+            origins: product.origins ?? null,
+            stores: product.stores ?? null,
+            regulatorySearchResults: regulatoryEvidence,
             lastModified: product.last_modified_t ?? null,
           },
         };
@@ -74,37 +104,14 @@ export async function fetchGrounding(productName: string, region: string): Promi
     console.warn("Open Food Facts lookup failed", error);
   }
 
-  const firecrawlKey = Deno.env.get("FIRECRAWL_API_KEY");
-  if (!firecrawlKey) return null;
   const authority = region === "IN" ? "FSSAI India" : region === "US" ? "FDA United States" : region === "UK" ? "FSA UK" : region;
-  try {
-    const response = await fetch("https://api.firecrawl.dev/v1/search", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${firecrawlKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: `\"${productName}\" ingredients nutrition ${authority}`,
-        limit: 5,
-        scrapeOptions: { formats: ["markdown"] },
-      }),
-    });
-    if (!response.ok) return null;
-    const data = await response.json();
-    const evidence = (Array.isArray(data.data) ? data.data : [])
-      .map((item: Record<string, unknown>) => ({
-        title: String(item.title ?? "").slice(0, 180),
-        excerpt: String(item.markdown ?? item.description ?? "").replace(/\s+/g, " ").slice(0, 1200),
-      }))
-      .filter((item: { excerpt: string }) => item.excerpt.length > 80);
-    if (evidence.length < 2) return null;
-    return {
-      status: "limited",
-      source: "Trusted web search",
-      canonicalKey: normalizeProductKey(productName),
-      matchedProduct: productName,
-      evidence: { searchResults: evidence, region },
-    };
-  } catch (error) {
-    console.warn("Trusted search fallback failed", error);
-    return null;
-  }
+  const evidence = await fetchTrustedSearch(`\"${productName}\" ingredients nutrition ${authority}`);
+  if (evidence.length < 2) return null;
+  return {
+    status: "limited",
+    source: "Trusted web search",
+    canonicalKey: normalizeProductKey(productName),
+    matchedProduct: productName,
+    evidence: { searchResults: evidence, region },
+  };
 }

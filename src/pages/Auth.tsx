@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import iconAsset from '@/assets/eatsmart-icon.jpg.asset.json';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -81,6 +82,7 @@ export default function Auth() {
       >
         {/* Logo */}
         <div className="mb-8 text-center">
+          <img src={iconAsset.url} alt="" className="mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-md" />
           <h1 className="font-display text-4xl font-bold text-gradient">EatSmart</h1>
           <p className="mt-2 text-muted-foreground text-sm">Know what you eat</p>
         </div>

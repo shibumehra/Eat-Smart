@@ -7,7 +7,7 @@ export interface ProductReport {
   verdict: 'Buy' | 'Avoid' | 'Try Once';
   ingredientPurityScore: number;
   reviewAuthenticity: number;
-  regulatoryStatus: 'Certified' | 'Not Certified' | 'Unknown';
+  regulatoryStatus: 'Certified' | 'Compliant' | 'Not Verified' | 'Non-Compliant' | 'Not Certified' | 'Unknown';
   regulatoryReasoning: string;
   crossRegionCertifications: Record<string, string>;
   valueForMoney: number;

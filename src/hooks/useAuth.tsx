@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import SplashScreen from '@/components/SplashScreen';
 
 interface AuthContextType {
   session: Session | null;
@@ -62,11 +63,7 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
   }, [session, loading, navigate, devBypass]);
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
+    return <SplashScreen />;
   }
 
   if (!session && !devBypass) return null;
