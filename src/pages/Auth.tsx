@@ -82,7 +82,7 @@ export default function Auth() {
       >
         {/* Logo */}
         <div className="mb-8 text-center">
-          <img src={iconAsset.url} alt="" className="mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-md" />
+          <img src={iconAsset.url} alt="" className="mx-auto mb-3 h-16 w-16 rounded-2xl object-cover shadow-md" onError={(event) => { event.currentTarget.src = '/favicon.png'; }} />
           <h1 className="font-display text-4xl font-bold text-gradient">EatSmart</h1>
           <p className="mt-2 text-muted-foreground text-sm">Know what you eat</p>
         </div>
