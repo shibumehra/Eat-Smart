@@ -13,3 +13,7 @@
 - [x] Prevent mobile regulatory details from being clipped
 - [x] Correct regulatory evidence semantics and invalidate stale cached reports
 - [x] Derive ingredient purity deterministically from visible classifications
+- [ ] Ground nutrition facts and serving sizes, then use them in health advice and value scoring
+- [ ] Add a signed-in dashboard for frequently searched products and score history
+- [ ] Build normalized Open Food Facts and USDA product records keyed by brand, variant, and region
+- [ ] Run a signed-in end-to-end product search and verify sources and loading stages
