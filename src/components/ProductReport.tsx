@@ -1,4 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ProductReport as ReportType, Alternative } from '@/lib/types';
 import ScoreRing from './ScoreRing';
@@ -95,24 +96,6 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
           <button onClick={() => setShowRegTooltip(!showRegTooltip)} className="absolute right-2 top-2 z-10 text-muted-foreground hover:text-foreground" aria-label="Show regulatory details">
             <Info className="h-3 w-3" />
           </button>
-          <AnimatePresence>
-            {showRegTooltip && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="fixed right-4 top-1/2 z-[70] max-h-[70vh] w-[min(18rem,calc(100vw-2rem))] -translate-y-1/2 overflow-y-auto rounded-lg border border-border bg-card p-4 text-left text-xs text-muted-foreground shadow-lg sm:absolute sm:right-0 sm:top-full sm:mt-2 sm:max-h-none sm:translate-y-0"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <p className="font-medium text-foreground">Regulatory Info ({currentAuthority})</p>
-                  <button onClick={() => setShowRegTooltip(false)} className="text-muted-foreground hover:text-foreground">
-                    <X className="h-3 w-3" />
-                  </button>
-                </div>
-                <p className="break-words leading-relaxed">{report.regulatoryReasoning}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
         <div className="glass rounded-xl p-3 text-center">
           <ScoreRing score={report.valueForMoney} maxScore={10} size={56} strokeWidth={4} />
@@ -273,6 +256,41 @@ export default function ProductReportView({ report, onAnalyze, region }: Props) 
         <Suspense fallback={null}>
           <ComparisonModal original={report} alternative={compareAlt} onClose={() => setCompareAlt(null)} onAnalyze={onAnalyze} />
         </Suspense>
+      )}
+      {createPortal(
+        <AnimatePresence>
+          {showRegTooltip && (
+            <>
+              <motion.button
+                type="button"
+                aria-label="Close regulatory details"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowRegTooltip(false)}
+                className="fixed inset-0 z-[60] bg-foreground/15"
+              />
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-label={`Regulatory Info (${currentAuthority})`}
+                initial={{ opacity: 0, x: 12, y: '-50%' }}
+                animate={{ opacity: 1, x: 0, y: '-50%' }}
+                exit={{ opacity: 0, x: 12, y: '-50%' }}
+                className="fixed right-4 top-1/2 z-[70] max-h-[70vh] w-[min(18rem,calc(100vw-2rem))] overflow-y-auto rounded-lg border border-border bg-card p-4 text-left text-xs text-muted-foreground shadow-lg"
+              >
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <p className="break-words font-medium text-foreground">Regulatory Info ({currentAuthority})</p>
+                  <button onClick={() => setShowRegTooltip(false)} className="shrink-0 text-muted-foreground hover:text-foreground" aria-label="Close regulatory details">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="break-words leading-relaxed">{report.regulatoryReasoning}</p>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>,
+        document.body,
       )}
     </motion.div>
   );

@@ -22,7 +22,7 @@ export default function Navbar({ region, onRegionChange }: NavbarProps) {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-md border-b border-border">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <button onClick={() => navigate('/')} className="flex min-w-0 items-center gap-2" aria-label="EatSmart home">
-          <img src={iconAsset.url} alt="" className="h-9 w-9 rounded-lg object-cover" />
+          <img src={iconAsset.url} alt="" className="h-9 w-9 rounded-lg object-cover" onError={(event) => { event.currentTarget.src = '/favicon.png'; }} />
           <span className="font-display text-xl font-bold text-gradient">EatSmart</span>
         </button>
 
